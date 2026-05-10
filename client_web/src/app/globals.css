@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+@theme {
+  /* Fonts */
+  --font-sans: var(--font-dm-sans), "DM Sans", sans-serif;
+  --font-serif: var(--font-playfair), "Playfair Display", serif;
+  --font-mono: var(--font-dm-mono), "DM Mono", monospace;
+
+  /* Colors */
+  --color-cream: #F7F3ED;
+  --color-warm-white: #FDFAF6;
+  --color-ink: #1A1410;
+  --color-ink-soft: #3D322A;
+  --color-amber: #E8820C;
+  --color-amber-light: #F5A640;
+  --color-amber-pale: #FEF0DC;
+  --color-sage: #4A6741;
+  --color-sage-light: #EBF0E8;
+  --color-rust: #C0442A;
+  --color-border: #E2D9CC;
+  --color-muted: #8A7B6E;
+
+  /* Spacing */
+  --spacing-15: 60px;
+  --spacing-13: 52px;
+
+  /* Animations */
+  --animate-fade-up: fadeUp 0.6s ease both;
+  --animate-line-grow: lineGrow 0.8s ease forwards;
+  --animate-progress-grow: progressGrow 1.2s 1s ease both;
+  --animate-float: floatUp 3s ease-in-out infinite;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes lineGrow {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+@keyframes progressGrow {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+@keyframes floatUp {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-sans);
+  background: #FDFAF6;
+  color: #1A1410;
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar       { width: 6px; }
+::-webkit-scrollbar-track { background: #F7F3ED; }
+::-webkit-scrollbar-thumb { background: #E2D9CC; border-radius: 3px; }
