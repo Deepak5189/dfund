@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Playfair_Display, DM_Sans, DM_Mono } from "next/font/google";
 import "./globals.css";
+import AuthProvider from "@/components/AuthProvider";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -38,7 +39,9 @@ export default function RootLayout({
         suppressHydrationWarning
         className={`${playfair.variable} ${dmSans.variable} ${dmMono.variable} font-sans bg-[#FDFAF6] text-[#1A1410] overflow-x-hidden`}
       >
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

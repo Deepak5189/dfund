@@ -19,11 +19,11 @@ export default function Navbar() {
         <Link href="#" className="text-sm font-medium text-ink-soft hover:text-amber transition-colors">
           For Nonprofits
         </Link>
-        <Link href="#" className="text-sm font-medium text-ink-soft hover:text-amber transition-colors">
+        <Link href="/login" className="text-sm font-medium text-ink-soft hover:text-amber transition-colors">
           Log in
         </Link>
         <Link
-          href="#"
+          href="/create-campaign"
           className="bg-ink text-warm-white px-5 py-2.5 rounded-md text-sm font-semibold hover:bg-amber hover:text-ink transition-colors"
         >
           Start a Campaign
