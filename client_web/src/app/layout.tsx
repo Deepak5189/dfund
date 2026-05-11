@@ -35,6 +35,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body
+        suppressHydrationWarning
         className={`${playfair.variable} ${dmSans.variable} ${dmMono.variable} font-sans bg-[#FDFAF6] text-[#1A1410] overflow-x-hidden`}
       >
         {children}

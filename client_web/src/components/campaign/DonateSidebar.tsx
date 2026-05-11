@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Campaign } from "../explore/CampaignCard";
+import { Campaign } from "../explore/CampaignData";
 
 const amounts = [10, 25, 50, 100, 250, 500];
 
@@ -27,15 +27,15 @@ export default function DonateSidebar({ campaign }: { campaign: Campaign }) {
         {/* Top: progress */}
         <div style={{ padding: "28px 28px 0" }}>
           <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "2rem", fontWeight: 900, color: "#1A1410", lineHeight: 1 }}>
-            $36,500
+            {campaign.raised}
           </div>
           <div style={{ fontSize: "0.82rem", color: "#8A7B6E", marginTop: "4px", marginBottom: "20px" }}>
-            raised of $50,000 goal
+            raised of {campaign.goal} goal
           </div>
 
           <div style={{ height: "10px", background: "#E2D9CC", borderRadius: "10px", overflow: "hidden", marginBottom: "16px" }}>
             <div style={{
-              height: "100%", width: "68%",
+              height: "100%", width: `${campaign.pct}%`,
               background: "linear-gradient(90deg, #E8820C, #F5A640)",
               borderRadius: "10px",
             }} />
@@ -44,9 +44,9 @@ export default function DonateSidebar({ campaign }: { campaign: Campaign }) {
           {/* Stats grid */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", borderTop: "1px solid #E2D9CC", marginBottom: "24px" }}>
             {[
-              { num: "68%", label: "Funded", amber: true },
-              { num: "412", label: "Donors", amber: false },
-              { num: "18", label: "Days Left", amber: false },
+              { num: `${campaign.pct}%`, label: "Funded", amber: true },
+              { num: campaign.donors.toString(), label: "Donors", amber: false },
+              { num: campaign.daysLeft.toString(), label: "Days Left", amber: false },
             ].map((stat, i) => (
               <div key={stat.label} style={{
                 textAlign: "center", padding: "14px 8px",
@@ -134,6 +134,7 @@ export default function DonateSidebar({ campaign }: { campaign: Campaign }) {
         }}>
           <span style={{ fontSize: "0.82rem", fontWeight: 600, color: "#1A1410" }}>Share this campaign</span>
           <div style={{ display: "flex", gap: "8px" }}>
+            {/* add user's social media links */}
             {["𝕏", "💬", "f", "🔗"].map((icon) => (
               <div key={icon} style={{
                 width: "34px", height: "34px", borderRadius: "8px",
@@ -158,18 +159,18 @@ export default function DonateSidebar({ campaign }: { campaign: Campaign }) {
           display: "flex", alignItems: "center", justifyContent: "space-between",
         }}>
           <span style={{ fontWeight: 700, fontSize: "0.9rem", color: "#1A1410" }}>Recent Donors</span>
-          <span style={{ fontSize: "0.75rem", color: "#8A7B6E", fontFamily: "monospace" }}>412 total</span>
+          <span style={{ fontSize: "0.75rem", color: "#8A7B6E", fontFamily: "monospace" }}>{campaign.donors} total</span>
         </div>
 
         <div>
-          {donors.map((d) => (
+          {campaign.recentDonors.map((d) => (
             <div key={d.name} style={{
               display: "flex", alignItems: "center", gap: "12px",
               padding: "10px 22px", cursor: "pointer",
             }}>
               <div style={{
                 width: "32px", height: "32px", borderRadius: "50%", flexShrink: 0,
-                background: d.gradient,
+                background: d.avatarGradient,
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: "0.62rem", fontWeight: 700, color: "white",
               }}>
@@ -177,7 +178,7 @@ export default function DonateSidebar({ campaign }: { campaign: Campaign }) {
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "#1A1410" }}>{d.name}</div>
-                <div style={{ fontSize: "0.7rem", color: "#8A7B6E" }}>{d.time}</div>
+                <div style={{ fontSize: "0.7rem", color: "#8A7B6E" }}>{d.timeAgo}</div>
               </div>
               <div style={{ fontFamily: "monospace", fontSize: "0.82rem", fontWeight: 500, color: "#4A6741" }}>
                 {d.amount}
@@ -192,7 +193,7 @@ export default function DonateSidebar({ campaign }: { campaign: Campaign }) {
           fontFamily: "inherit", fontSize: "0.8rem", fontWeight: 600,
           color: "#8A7B6E", cursor: "pointer",
         }}>
-          See all 412 donors →
+          See all {campaign.donors} donors →
         </button>
       </div>
     </div>
