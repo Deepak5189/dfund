@@ -19,24 +19,24 @@ export default function Hero() {
       {/* LEFT COLUMN */}
       <div className="relative z-10">
         {/* Eyebrow */}
-        <div className="inline-flex items-center gap-2 bg-[#FEF0DC] border border-[#E8820C]/30 px-4 py-1.5 rounded-full text-xs font-semibold text-[#E8820C] uppercase tracking-widest mb-7 animate-fade-up">
-          <span className="w-1.5 h-1.5 bg-[#E8820C] rounded-full animate-pulse" />
+        <div className="inline-flex items-center gap-2 bg-amber-pale border border-amber/30 px-4 py-1.5 rounded-full text-xs font-semibold text-amber uppercase tracking-widest mb-7 animate-fade-up">
+          <span className="w-1.5 h-1.5 bg-amber rounded-full animate-pulse" />
           Trusted by 12,000+ donors
         </div>
 
         {/* Title */}
         <h1
-          className="font-['Playfair_Display'] text-[clamp(3rem,5vw,4.5rem)] font-black leading-[1.05] tracking-[-1.5px] text-[#1A1410] animate-fade-up"
+          className="font-['Playfair_Display'] text-[clamp(3rem,5vw,4.5rem)] font-black leading-[1.05] tracking-[-1.5px] text-ink animate-fade-up"
           style={{ animationDelay: "0.1s" }}
         >
           Fund the causes
           <br />
-          that <em className="text-[#E8820C]">truly</em>
+          that <em className="text-amber">truly</em>
           <br />
           <span className="relative inline-block">
             matter
             <span
-              className="absolute bottom-0.5 left-0 right-0 h-1 bg-[#4A6741] rounded-sm origin-left animate-line-grow"
+              className="absolute bottom-0.5 left-0 right-0 h-1 bg-sage rounded-sm origin-left animate-line-grow"
               style={{ animationDelay: "0.7s" }}
             />
           </span>
@@ -45,7 +45,7 @@ export default function Hero() {
 
         {/* Subtitle */}
         <p
-          className="mt-6 text-lg leading-relaxed text-[#3D322A] font-light max-w-[480px] animate-fade-up"
+          className="mt-6 text-lg leading-relaxed text-ink-soft font-light max-w-120 animate-fade-up"
           style={{ animationDelay: "0.2s" }}
         >
           DFund connects real people with real causes — medical emergencies, creative dreams,
@@ -58,14 +58,14 @@ export default function Hero() {
           style={{ animationDelay: "0.3s" }}
         >
           <Link
-            href="#"
-            className="bg-[#E8820C] text-[#1A1410] px-8 py-4 rounded-lg font-bold text-base hover:bg-[#F5A640] hover:-translate-y-0.5 transition-all shadow-[0_4px_20px_rgba(232,130,12,0.3)] hover:shadow-[0_8px_28px_rgba(232,130,12,0.4)]"
+            href="/create-campaign"
+            className="bg-amber text-ink px-8 py-4 rounded-lg font-bold text-base hover:bg-amber-light hover:-translate-y-0.5 transition-all shadow-[0_4px_20px_rgba(232,130,12,0.3)] hover:shadow-[0_8px_28px_rgba(232,130,12,0.4)]"
           >
             Start a Campaign
           </Link>
           <Link
             href="/explore"
-            className="text-[#1A1410] font-semibold text-base inline-flex items-center gap-2 px-2 py-4 border-b-2 border-transparent hover:border-[#1A1410] transition-all group"
+            className="text-ink font-semibold text-base inline-flex items-center gap-2 px-2 py-4 border-b-2 border-transparent hover:border-ink transition-all group"
           >
             Explore Campaigns
             <span className="group-hover:translate-x-1 transition-transform">→</span>
@@ -78,18 +78,18 @@ export default function Hero() {
           style={{ animationDelay: "0.4s" }}
         >
           <div>
-            <div className="font-['Playfair_Display'] text-[1.8rem] font-black text-[#1A1410] leading-none">$4.2M</div>
-            <div className="text-xs text-[#8A7B6E] font-medium mt-0.5 tracking-wide">Total Raised</div>
+            <div className="font-['Playfair_Display'] text-[1.8rem] font-black text-ink leading-none">$4.2M</div>
+            <div className="text-xs text-muted font-medium mt-0.5 tracking-wide">Total Raised</div>
           </div>
-          <div className="w-px bg-[#E2D9CC]" />
+          <div className="w-px bg-border" />
           <div>
-            <div className="font-['Playfair_Display'] text-[1.8rem] font-black text-[#1A1410] leading-none">1,840</div>
-            <div className="text-xs text-[#8A7B6E] font-medium mt-0.5 tracking-wide">Campaigns Funded</div>
+            <div className="font-['Playfair_Display'] text-[1.8rem] font-black text-ink leading-none">1,840</div>
+            <div className="text-xs text-muted font-medium mt-0.5 tracking-wide">Campaigns Funded</div>
           </div>
-          <div className="w-px bg-[#E2D9CC]" />
+          <div className="w-px bg-border" />
           <div>
-            <div className="font-['Playfair_Display'] text-[1.8rem] font-black text-[#1A1410] leading-none">98%</div>
-            <div className="text-xs text-[#8A7B6E] font-medium mt-0.5 tracking-wide">Approval Accuracy</div>
+            <div className="font-['Playfair_Display'] text-[1.8rem] font-black text-ink leading-none">98%</div>
+            <div className="text-xs text-muted font-medium mt-0.5 tracking-wide">Approval Accuracy</div>
           </div>
         </div>
       </div>
@@ -114,16 +114,16 @@ export default function Hero() {
               <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ background: "linear-gradient(135deg, #4A6741, #E8820C)" }}>
                 SR
               </div>
-              <span className="text-sm font-semibold text-[#3D322A]">Sarah Rahman · Verified Creator</span>
+              <span className="text-sm font-semibold text-ink-soft">Sarah Rahman · Verified Creator</span>
             </div>
 
-            <h3 className="font-['Playfair_Display'] text-xl font-bold leading-snug text-[#1A1410] mb-4">
-              Help cover Maya's heart surgery expenses
+            <h3 className="font-['Playfair_Display'] text-xl font-bold leading-snug text-ink mb-4">
+              Help cover Maya&apos;s heart surgery expenses
             </h3>
 
             {/* Progress */}
             <div className="mb-4">
-              <div className="h-1.5 bg-[#E2D9CC] rounded-full overflow-hidden mb-2.5">
+              <div className="h-1.5 bg-border rounded-full overflow-hidden mb-2.5">
                 <div
                   className="h-full rounded-full animate-progress-grow"
                   style={{ background: "linear-gradient(90deg, #E8820C, #F5A640)", width: "73%" }}
@@ -131,18 +131,18 @@ export default function Hero() {
               </div>
               <div className="flex justify-between text-sm">
                 <div>
-                  <span className="font-bold text-[#1A1410]">$36,500</span>{" "}
-                  <span className="text-[#8A7B6E]">of $50,000</span>
+                  <span className="font-bold text-ink">$36,500</span>{" "}
+                  <span className="text-muted">of $50,000</span>
                 </div>
-                <span className="font-mono text-xs text-[#E8820C] font-medium">73%</span>
+                <span className="font-mono text-xs text-amber font-medium">73%</span>
               </div>
             </div>
 
-            <div className="flex justify-between items-center pt-4 border-t border-[#E2D9CC]">
-              <span className="text-sm text-[#8A7B6E]">
-                <strong className="text-[#1A1410]">18 days</strong> left
+            <div className="flex justify-between items-center pt-4 border-t border-border">
+              <span className="text-sm text-muted">
+                <strong className="text-ink">18 days</strong> left
               </span>
-              <button className="bg-[#1A1410] text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-[#E8820C] hover:text-[#1A1410] transition-colors">
+              <button className="bg-ink text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-amber hover:text-ink transition-colors">
                 Donate Now
               </button>
             </div>
@@ -151,10 +151,10 @@ export default function Hero() {
 
         {/* Floating card 1 */}
         <div className="absolute -bottom-5 -left-10 bg-white rounded-xl px-4 py-3 shadow-[0_8px_32px_rgba(26,20,16,0.1)] flex items-center gap-2.5 text-sm font-medium animate-float">
-          <div className="w-9 h-9 rounded-lg bg-[#EBF0E8] flex items-center justify-center text-base">✅</div>
+          <div className="w-9 h-9 rounded-lg bg-sage-light flex items-center justify-center text-base">✅</div>
           <div>
-            <div className="text-xs text-[#8A7B6E]">Admin verified</div>
-            <div className="font-bold text-[#1A1410] text-sm">Campaign Approved</div>
+            <div className="text-xs text-muted">Admin verified</div>
+            <div className="font-bold text-ink text-sm">Campaign Approved</div>
           </div>
         </div>
 
@@ -163,10 +163,10 @@ export default function Hero() {
           className="absolute top-8 -right-12 bg-white rounded-xl px-4 py-3 shadow-[0_8px_32px_rgba(26,20,16,0.1)] flex items-center gap-2.5 text-sm font-medium animate-float"
           style={{ animationDelay: "1.5s" }}
         >
-          <div className="w-9 h-9 rounded-lg bg-[#FEF0DC] flex items-center justify-center text-base">💰</div>
+          <div className="w-9 h-9 rounded-lg bg-amber-pale flex items-center justify-center text-base">💰</div>
           <div>
-            <div className="text-xs text-[#8A7B6E]">New donation</div>
-            <div className="font-bold text-[#1A1410] text-sm">$250 just donated</div>
+            <div className="text-xs text-muted">New donation</div>
+            <div className="font-bold text-ink text-sm">$250 just donated</div>
           </div>
         </div>
       </div>
