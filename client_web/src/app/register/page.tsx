@@ -1,47 +1,44 @@
 "use client";
 
 import { useState } from "react";
+import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import {useDispatch, useSelector} from "react-redux";
-import { AppDispatch } from "@/lib/store/store";
-import { signInAction } from "@/lib/store/actions/authActions";
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [loadingText, setLoadingText] = useState("");
-
-  const dispatch = useDispatch<AppDispatch>()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError("");
     setLoading(true);
-    setLoadingText("Signing in…");
 
-    const formData = new FormData();
-    formData.append("email", email);
-    formData.append("password", password);
-    const timeout = setTimeout(()=>{
-      setLoadingText("This is Taking longer than usual. Please wait...");
-    }, 5000);
-    await dispatch(signInAction(formData, router, callbackUrl));
+    const result = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,           // handle redirect manually
+    });
+
+    console.log(result);
 
     setLoading(false);
-    clearTimeout(timeout);
+
+    if (result?.error) {
+      setError("Invalid email or password.");
+      return;
+    }
 
     // Redirect back to where the user came from (e.g. /create-campaign)
-    // router.push(callbackUrl);
-    // router.refresh();
-  };
-
-  const signInError = useSelector((state)=>state.auth?.signInError);
-  const successMessage = useSelector((state)=>state.auth?.successMessage);
+    router.push(callbackUrl);
+    router.refresh();
+  }
 
   return (
     <div style={{
@@ -129,13 +126,13 @@ export default function LoginPage() {
             </div>
 
             {/* Error */}
-            {signInError && (
+            {error && (
               <div style={{
                 background: "rgba(192,68,42,0.08)", border: "1px solid rgba(192,68,42,0.3)",
                 borderRadius: "8px", padding: "10px 14px",
                 fontSize: "0.82rem", color: "#C0442A", marginBottom: "16px",
               }}>
-                {signInError}
+                {error}
               </div>
             )}
 

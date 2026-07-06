@@ -1,6 +1,10 @@
+"use client";
+
 import Link from "next/link";
+import { useSession, signOut } from "next-auth/react";
 
 export default function ExploreNavbar() {
+  const { data: session } = useSession();
   return (
     <nav
       className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-[48px] py-[18px] backdrop-blur-md border-b border-border"
@@ -24,7 +28,7 @@ export default function ExploreNavbar() {
         <input
           type="text"
           placeholder="Search campaigns, causes, creators…"
-          defaultValue="medical"
+          // defaultValue="medical"
           style={{
             border: "none", background: "transparent", outline: "none",
             fontFamily: "inherit", fontSize: "0.875rem",
@@ -38,12 +42,32 @@ export default function ExploreNavbar() {
         <Link href="#" className="text-sm font-medium text-ink-soft hover:text-amber transition-colors no-underline">
           How it Works
         </Link>
-        <Link href="#" className="text-sm font-medium text-ink-soft hover:text-amber transition-colors no-underline">
-          Log in
-        </Link>
-        <Link href="#" className="bg-ink text-cream px-5 py-2 rounded-md text-sm font-semibold hover:bg-amber hover:text-ink transition-colors no-underline">
-          Start a Campaign
-        </Link>
+
+        {session ? (
+          <>
+            <Link href="/my-campaigns" className="bg-ink text-cream px-5 py-2 rounded-md text-sm font-semibold hover:bg-amber hover:text-ink transition-colors no-underline">
+              My Campaigns
+            </Link>
+            <Link href="/explore" className="text-sm font-medium text-ink-soft hover:text-amber transition-colors no-underline">
+              {session.user?.name || session.user?.email}
+            </Link>
+            <button
+              onClick={() => signOut()}
+              className="text-sm font-medium text-ink-soft hover:text-amber transition-colors cursor-pointer bg-none border-none"
+            >
+              Sign out
+            </button>
+          </>
+        ) : (
+          <>
+            <Link href="/login" className="text-sm font-medium text-ink-soft hover:text-amber transition-colors no-underline">
+              Log in
+            </Link>
+            <Link href="/create-campaign" className="bg-ink text-cream px-5 py-2 rounded-md text-sm font-semibold hover:bg-amber hover:text-ink transition-colors no-underline">
+              Start a Campaign
+            </Link>
+          </>
+        )}
       </div>
     </nav>
   );
