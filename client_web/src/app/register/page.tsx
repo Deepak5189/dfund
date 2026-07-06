@@ -26,6 +26,8 @@ export default function RegisterPage() {
       redirect: false,           // handle redirect manually
     });
 
+    console.log(result);
+
     setLoading(false);
 
     if (result?.error) {

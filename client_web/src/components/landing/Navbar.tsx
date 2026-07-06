@@ -1,10 +1,18 @@
 "use client";
 
-import { useSession, signOut } from "next-auth/react";
+import { logoutAction } from "@/lib/store/actions/authActions";
+import { AppDispatch } from "@/lib/store/store";
 import Link from "next/link";
+import { useDispatch, useSelector } from "react-redux";
 
 export default function Navbar() {
-  const { data: session } = useSession();
+  const userData = useSelector((state)=>state.auth?.userData);
+
+  const dispatch = useDispatch<AppDispatch>()
+
+  const handleLogout = () => {
+    dispatch(logoutAction());
+  }
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-15 py-5 bg-warm-white/85 backdrop-blur-md border-b border-[#E2D9CC]">
@@ -23,13 +31,13 @@ export default function Navbar() {
           For Nonprofits
         </Link>
 
-        {session ? (
+        {userData ? (
           <>
             <span className="text-sm font-medium text-ink-soft">
-              {session.user?.name || session.user?.email}
+              {userData.user?.name || userData.user?.email}
             </span>
             <button
-              onClick={() => signOut()}
+              onClick={() => handleLogout()}
               className="text-sm font-medium text-ink-soft hover:text-amber transition-colors cursor-pointer bg-none border-none"
             >
               Sign out

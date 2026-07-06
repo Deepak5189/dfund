@@ -3,7 +3,7 @@ import type {NextRequest} from 'next/server';
 
 const privateRoutes=["/create-campaign", "profile", "my-campaigns", "donate"];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
     const {pathname} = request.nextUrl;
     console.log("middleware running for:", {pathname})
     const isAuthenticated = false // will update it's logic later to check if user is authenticated or not

@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import {useDispatch, useSelector} from "react-redux";
+import { AppDispatch } from "@/lib/store/store";
+import { signInAction } from "@/lib/store/actions/authActions";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,31 +14,34 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState("");
+
+  const dispatch = useDispatch<AppDispatch>()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError("");
     setLoading(true);
+    setLoadingText("Signing in…");
 
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,           // handle redirect manually
-    });
+    const formData = new FormData();
+    formData.append("email", email);
+    formData.append("password", password);
+    const timeout = setTimeout(()=>{
+      setLoadingText("This is Taking longer than usual. Please wait...");
+    }, 5000);
+    await dispatch(signInAction(formData, router, callbackUrl));
 
     setLoading(false);
-
-    if (result?.error) {
-      setError("Invalid email or password.");
-      return;
-    }
+    clearTimeout(timeout);
 
     // Redirect back to where the user came from (e.g. /create-campaign)
-    router.push(callbackUrl);
-    router.refresh();
-  }
+    // router.push(callbackUrl);
+    // router.refresh();
+  };
+
+  const signInError = useSelector((state)=>state.auth?.signInError);
+  const successMessage = useSelector((state)=>state.auth?.successMessage);
 
   return (
     <div style={{
@@ -124,13 +129,13 @@ export default function LoginPage() {
             </div>
 
             {/* Error */}
-            {error && (
+            {signInError && (
               <div style={{
                 background: "rgba(192,68,42,0.08)", border: "1px solid rgba(192,68,42,0.3)",
                 borderRadius: "8px", padding: "10px 14px",
                 fontSize: "0.82rem", color: "#C0442A", marginBottom: "16px",
               }}>
-                {error}
+                {signInError}
               </div>
             )}
 
