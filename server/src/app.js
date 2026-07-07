@@ -3,6 +3,7 @@ const cors = require("cors");
 dotenv = require("dotenv").config();
 const Database = require("./config/db");
 const userRoutes = require("./routes/user.routes");
+const Log = require("./models/log.model");
 
 
 const app=express();
@@ -17,9 +18,10 @@ db.connect().catch(err=>{
 app.use(express.json());
 app.use(cors());
 
-app.get("/", (req, res)=>{
+app.get("/", async (req, res)=>{
     console.log("Hello from server");
-    res.json({message: "Hello From Server", status: "success"});
+    const logs=await Log.find().sort({timestamp: -1});
+    res.json({message: "Logs for admin", logs});
 })
 
 app.use("/users", userRoutes);

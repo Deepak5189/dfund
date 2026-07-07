@@ -1,7 +1,6 @@
 "use client";
 
 import { createAppStore } from "@/lib/store/store";
-// import { SessionProvider } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { Provider } from "react-redux";
 

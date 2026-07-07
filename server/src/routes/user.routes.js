@@ -1,4 +1,4 @@
-const { signin, addUser } = require("../controllers/user.controller");
+const { signin, addUser, logout } = require("../controllers/user.controller");
 const useragent = require("express-useragent");
 const { addUserValidator, addUserValidatorHandler } = require("../middlewares/users/usersValidator");
 
@@ -16,6 +16,8 @@ router.post(
     "/signin",
     useragent.express(),
     signin
-)
+);
+
+router.post("/logout", logout);
 
 module.exports = router;

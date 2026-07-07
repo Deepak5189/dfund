@@ -2,7 +2,8 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const User = require("../models/user.model");
 const Token = require("../models/token.model");
-const {saveLogInfo} = require("../middlewares/logger/logInfo")
+const {saveLogInfo} = require("../middlewares/logger/logInfo");
+const tokenModel = require("../models/token.model");
 
 const LOG_TYPE = {
     SIGN_IN: "sign in",
@@ -145,7 +146,37 @@ const addUser = async (req, res, next) => {
     }
 };
 
+const logout = async (req, res) => {
+    try{
+        const accessToken = req.headers.authorization?.split(" ")[1] ?? null;
+
+        if(accessToken){
+            await Token.deleteOne({accessToken});
+            await saveLogInfo(
+                null, 
+                MESSAGE.LOGOUT_SUCCESS,
+                LOG_TYPE.LOGOUT,
+                LEVEL.INFO,
+            );
+        }
+        res.status(200).json({
+            message: "Logout Successful",
+        });
+    }catch(error){
+        await saveLogInfo(
+            null, 
+            error.message,
+            LOG_TYPE.LOGOUT,
+            LEVEL.ERROR,
+        );
+        res.status(500).json({
+            message: "Internal Server Error. Please try again",
+        });
+    }
+};
+
 module.exports = {
     signin,
     addUser,
+    logout
 }

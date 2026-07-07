@@ -116,7 +116,8 @@ export const signInAction = (formData: FormData, router: AppRouterInstance, call
       type: types.SIGNIN_FAIL,
       payload: types.ERROR_MESSAGE,
     });
-    navigate("/signin");
+    router.push("/signin");
+    router.refresh();
   }
 };
 
