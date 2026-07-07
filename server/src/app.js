@@ -1,4 +1,5 @@
 const express = require("express");
+const cookieParser = require("cookie-parser");
 const cors = require("cors");
 dotenv = require("dotenv").config();
 const Database = require("./config/db");
@@ -17,6 +18,7 @@ db.connect().catch(err=>{
 
 app.use(express.json());
 app.use(cors());
+app.use(cookieParser());
 
 app.get("/", async (req, res)=>{
     console.log("Hello from server");

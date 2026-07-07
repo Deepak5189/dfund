@@ -74,6 +74,57 @@ export interface Campaign {
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
+export const myCampaigns = [
+  {
+    id: 1,
+    title: "Help cover Maya's life-saving heart surgery at AIIMS Delhi",
+    category: "Medical",
+    status: "Active",
+    raised: 36500,
+    goal: 50000,
+    donors: 412,
+    daysLeft: 18,
+    createdAt: "2026-05-12",
+    gradient: "linear-gradient(135deg, #2b4a6f, #4d7ea8)",
+  },
+  {
+    id: 2,
+    title: "Rebuild the community library after the flood",
+    category: "Nonprofit",
+    status: "Active",
+    raised: 12800,
+    goal: 20000,
+    donors: 156,
+    daysLeft: 32,
+    createdAt: "2026-04-02",
+    gradient: "linear-gradient(135deg, #a8541f, #d98436)",
+  },
+  {
+    id: 3,
+    title: "Independent short film: 'Threshold'",
+    category: "Creative",
+    status: "Completed",
+    raised: 8000,
+    goal: 8000,
+    donors: 94,
+    daysLeft: 0,
+    createdAt: "2026-01-20",
+    gradient: "linear-gradient(135deg, #5c3a5c, #8c5f8c)",
+  },
+  {
+    id: 4,
+    title: "Emergency relief for earthquake survivors",
+    category: "Emergency",
+    status: "Draft",
+    raised: 0,
+    goal: 15000,
+    donors: 0,
+    daysLeft: null,
+    createdAt: "2026-07-01",
+    gradient: "linear-gradient(135deg, #6b1f1f, #a83a3a)",
+  },
+];
+
 export const campaigns: Campaign[] = [
   {
     id: 1,

@@ -3,17 +3,12 @@ import axios from "axios";
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const authInterceptor = (req: any) => {
-    const profile = localStorage.getItem("profile");
-    const accessToken = profile?JSON.parse(profile).accessToken:null;
-
-    if(accessToken){
-        req.headers.Authorization = `Bearer ${accessToken}`;
-    }
     return req;
 };
 
 export const API = axios.create({
     baseURL: BASE_URL,
+    withCredentials: true,
 });
 
 API.interceptors.request.use(authInterceptor);

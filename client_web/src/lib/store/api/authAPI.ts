@@ -1,5 +1,18 @@
 import {API, handleApiError} from "./utils";
 
+export const getCurrentUser = async () => {
+    try{
+        const response = await API.get("/users/me", {
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+        return {error: null, data: response.data};
+    }catch(error){
+        return handleApiError(error);
+    }
+};
+
 export const signIn = async (formData: any) => {
     try{
         const response = await API.post("/users/signin", formData, {

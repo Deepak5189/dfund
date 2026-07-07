@@ -1,7 +1,7 @@
 import {NextResponse} from 'next/server';
 import type {NextRequest} from 'next/server';
 
-const privateRoutes=["/create-campaign", "profile", "my-campaigns", "donate"];
+const privateRoutes=["/create-campaign", "/profile", "/my-campaigns", "/donate"];
 
 export function proxy(request: NextRequest) {
     const {pathname, search} = request.nextUrl;

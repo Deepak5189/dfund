@@ -28,6 +28,26 @@ const MESSAGE = {
   LOGOUT_SUCCESS: "User has logged out successfully",
 };
 
+const getCurrUser = async (req, res, next) => {
+    const accessToken = req.cookies.accessToken;
+
+    if(!accessToken) return res.status(401).json({
+        message: "User is not loggedIn",
+    })
+
+    const payload = jwt.verify(accessToken, process.env.SECRET);
+
+    const user = await User.findById(payload._id);
+
+    res.status(200).json({
+        user: {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+        }
+    });
+}
+
 const signin = async(req, res, next) =>{
     await saveLogInfo(
         req, 
@@ -94,10 +114,21 @@ const signin = async(req, res, next) =>{
             accessToken,
         });
         await newRefreshToken.save();
+        res.cookie("accessToken", accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 6 * 60 * 60 * 1000, // 6 hours
+        });
+
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        });
 
         res.status(200).json({
-            accessToken,
-            refreshToken,
             accessTokenUpdatedAt: new Date().toLocaleString(),
             user:{
                 _id: existingUser._id,
@@ -148,7 +179,7 @@ const addUser = async (req, res, next) => {
 
 const logout = async (req, res) => {
     try{
-        const accessToken = req.headers.authorization?.split(" ")[1] ?? null;
+        const accessToken = req.cookies.accessToken;
 
         if(accessToken){
             await Token.deleteOne({accessToken});
@@ -159,6 +190,19 @@ const logout = async (req, res) => {
                 LEVEL.INFO,
             );
         }
+
+        res.clearCookie("accessToken", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+        });
+
+        res.clearCookie("refreshToken", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+        });
+
         res.status(200).json({
             message: "Logout Successful",
         });
@@ -176,6 +220,7 @@ const logout = async (req, res) => {
 };
 
 module.exports = {
+    getCurrUser,
     signin,
     addUser,
     logout
