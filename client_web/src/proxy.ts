@@ -1,17 +1,24 @@
 import {NextResponse} from 'next/server';
 import type {NextRequest} from 'next/server';
 
-const privateRoutes=["/create-campaign", "profile", "my-campaigns", "donate"];
+const privateRoutes=["/create-campaign", "/profile", "/my-campaigns", "/donate"];
 
 export function proxy(request: NextRequest) {
-    const {pathname} = request.nextUrl;
+    const {pathname, search} = request.nextUrl;
     console.log("middleware running for:", {pathname})
-    const isAuthenticated = false // will update it's logic later to check if user is authenticated or not
+    const token = request.cookies.get("accessToken")?.value;
+    const isAuthenticated = !!token // will update it's logic later to check if user is authenticated or not
 
     const isPrivate = privateRoutes.some(route=>pathname.startsWith(route));
 
     if(!isAuthenticated && isPrivate){
-        return NextResponse.redirect(new URL('/login', request.url));
+      const loginUrl = new URL('/login', request.url);
+
+      loginUrl.searchParams.set(
+        "callbackUrl",
+        pathname+search
+      );
+        return NextResponse.redirect(loginUrl);
     }
 
     return NextResponse.next();

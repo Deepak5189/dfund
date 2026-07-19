@@ -7,28 +7,22 @@ import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.share
 
 
 export const initializeAuth = () => async (dispatch: AppDispatch) => {
-    const profile = localStorage.getItem("profile");
-    const accessToken = profile?JSON.parse(profile).accessToken:null;
-    const refreshToken = profile?JSON.parse(profile).refreshToken:null;
+  try{
+    const res = await api.getCurrentUser();
 
-    if(accessToken && refreshToken){
-        if(isValidToken(accessToken)){
-            dispatch(setAccessToken(accessToken));
-            dispatch(setRefreshToken(refreshToken));
-            dispatch(setUserData(profile?JSON.parse(profile).user:null));
-        }else{
-            await dispatch(refreshTokenAction(refreshToken));
-        }
-    }
+    dispatch(setUserData(res.data.user));
+  }catch(error){
+    dispatch(logoutAction());
+  }
 };
 
-export const setAccessToken = (accessToken: string) => async (dispatch: AppDispatch) => {
-    dispatch({type: types.SET_ACCESS_TOKEN, payload: accessToken});
-}
+// export const setAccessToken = (accessToken: string) => async (dispatch: AppDispatch) => {
+//     dispatch({type: types.SET_ACCESS_TOKEN, payload: accessToken});
+// }
 
-export const setRefreshToken = (refreshToken: string) => async (dispatch: AppDispatch) => {
-    dispatch({type: types.SET_REFRESH_TOKEN, payload: refreshToken});
-}
+// export const setRefreshToken = (refreshToken: string) => async (dispatch: AppDispatch) => {
+//     dispatch({type: types.SET_REFRESH_TOKEN, payload: refreshToken});
+// }
 
 export const setUserData = (userData: any) => async (dispatch: AppDispatch) => {
     dispatch({type: types.SET_USER_DATA, payload: userData});
@@ -96,11 +90,9 @@ export const signInAction = (formData: FormData, router: AppRouterInstance, call
         payload: error,
       });
     } else {
-      const { user, accessToken, refreshToken, accessTokenUpdatedAt } = data;
+      const { user, accessTokenUpdatedAt } = data;
       const profile = {
         user,
-        accessToken,
-        refreshToken,
         accessTokenUpdatedAt,
       };
       localStorage.setItem("profile", JSON.stringify(profile));
@@ -108,15 +100,18 @@ export const signInAction = (formData: FormData, router: AppRouterInstance, call
         type: types.SIGNIN_SUCCESS,
         payload: profile,
       });
+      console.log("before push", callbackUrl, router);
       router.push(callbackUrl);
       router.refresh();
+      console.log("after push");
     }
   } catch (error) {
     await dispatch({
       type: types.SIGNIN_FAIL,
       payload: types.ERROR_MESSAGE,
     });
-    navigate("/signin");
+    router.push("/signin");
+    router.refresh();
   }
 };
 

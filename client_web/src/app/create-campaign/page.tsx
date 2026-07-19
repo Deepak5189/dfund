@@ -1,16 +1,17 @@
-import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+"use client";
 import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
 
-export default async function CreateCampaignPage() {
-  // Server-side session check (middleware already blocks unauthenticated
-  // users, but this is a safety net and gives us the user object)
-  const session = await getServerSession(authOptions);
+export default function CreateCampaignPage() {
+  const dispatch = useDispatch();
+  const userData = useSelector((state)=>state.auth?.userData);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
-  if (!session) {
-    redirect("/login?callbackUrl=/create-campaign");
-  }
+  const callbackUrl = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : "");
+  console.log(userData);
+
 
   return (
     <div style={{ minHeight: "100vh", background: "#FDFAF6" }}>
@@ -34,10 +35,10 @@ export default async function CreateCampaignPage() {
             display: "flex", alignItems: "center", justifyContent: "center",
             fontSize: "0.72rem", fontWeight: 700, color: "white",
           }}>
-            {session.user?.name?.[0]?.toUpperCase() ?? "U"}
+            {userData.name?.[0]?.toUpperCase() ?? "U"}
           </div>
           <span style={{ fontSize: "0.85rem", fontWeight: 500, color: "#3D322A" }}>
-            {session.user?.name ?? session.user?.email}
+            {userData.name ?? userData.email}
           </span>
         </div>
       </nav>
@@ -122,7 +123,7 @@ export default async function CreateCampaignPage() {
             Form coming soon
           </h2>
           <p style={{ fontSize: "0.9rem", color: "#8A7B6E", maxWidth: "360px", margin: "0 auto" }}>
-            You&apos;re authenticated as <strong style={{ color: "#1A1410" }}>{session.user?.email}</strong>.
+            You&apos;re authenticated as <strong style={{ color: "#1A1410" }}>{userData.email}</strong>.
             The multi-step form will be built here next.
           </p>
         </div>

@@ -30,6 +30,7 @@ export default function LoginPage() {
     const timeout = setTimeout(()=>{
       setLoadingText("This is Taking longer than usual. Please wait...");
     }, 5000);
+    console.log(callbackUrl)
     await dispatch(signInAction(formData, router, callbackUrl));
 
     setLoading(false);

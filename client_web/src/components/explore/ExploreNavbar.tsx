@@ -1,10 +1,18 @@
 "use client";
 
+import { logoutAction } from "@/lib/store/actions/authActions";
 import Link from "next/link";
-import { useSession, signOut } from "next-auth/react";
+import {usePathname, useSearchParams } from "next/navigation";
+import {useDispatch, useSelector} from "react-redux";
 
 export default function ExploreNavbar() {
-  const { data: session } = useSession();
+  const dispatch = useDispatch();
+  const userData = useSelector((state)=>state.auth?.userData);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const callbackUrl = pathname+ (searchParams.toString() ? `?${searchParams.toString()}` : "");
+
   return (
     <nav
       className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-[48px] py-[18px] backdrop-blur-md border-b border-border"
@@ -43,16 +51,16 @@ export default function ExploreNavbar() {
           How it Works
         </Link>
 
-        {session ? (
+        {userData ? (
           <>
             <Link href="/my-campaigns" className="bg-ink text-cream px-5 py-2 rounded-md text-sm font-semibold hover:bg-amber hover:text-ink transition-colors no-underline">
               My Campaigns
             </Link>
             <Link href="/explore" className="text-sm font-medium text-ink-soft hover:text-amber transition-colors no-underline">
-              {session.user?.name || session.user?.email}
+              {userData.user?.name || userData.user?.email}
             </Link>
             <button
-              onClick={() => signOut()}
+              onClick={() => dispatch(logoutAction())}
               className="text-sm font-medium text-ink-soft hover:text-amber transition-colors cursor-pointer bg-none border-none"
             >
               Sign out
@@ -60,7 +68,7 @@ export default function ExploreNavbar() {
           </>
         ) : (
           <>
-            <Link href="/login" className="text-sm font-medium text-ink-soft hover:text-amber transition-colors no-underline">
+            <Link href={`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`} className="text-sm font-medium text-ink-soft hover:text-amber transition-colors no-underline">
               Log in
             </Link>
             <Link href="/create-campaign" className="bg-ink text-cream px-5 py-2 rounded-md text-sm font-semibold hover:bg-amber hover:text-ink transition-colors no-underline">
