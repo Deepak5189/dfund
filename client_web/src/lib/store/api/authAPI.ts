@@ -1,4 +1,5 @@
 import {API, handleApiError} from "./utils";
+import {Response} from "../../../components/create-campaign/CreateCampaignForm"
 
 export const getCurrentUser = async () => {
     try{
@@ -50,4 +51,17 @@ export const logout = async () => {
     }catch(error){
         return handleApiError(error);
     }
-}
+};
+
+export const createPost = async (formData: any): Promise<Response> => {
+    try{
+        const response = await API.post("/posts/create-post", formData, {
+            headers: {
+                "Content-Type": "application/json",
+            }
+        });
+        return {error: null, data: response.data};
+    }catch(error: any){
+        return handleApiError(error);
+    }
+};

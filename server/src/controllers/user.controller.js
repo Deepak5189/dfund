@@ -36,12 +36,13 @@ const getCurrUser = async (req, res, next) => {
     })
 
     const payload = jwt.verify(accessToken, process.env.SECRET);
+    console.log(payload);
 
-    const user = await User.findById(payload._id);
+    const user = await User.findById(payload.id);
 
     res.status(200).json({
         user: {
-            _id: user._id,
+            _id: user.id,
             name: user.name,
             email: user.email,
         }
@@ -62,7 +63,7 @@ const signin = async(req, res, next) =>{
         const {email, password} = req.body;
         const existingUser = await User.findOne({
             email: {$eq: email},
-        });
+        }).select("+password");
 
         if(!existingUser){
             await saveLogInfo(
@@ -76,6 +77,9 @@ const signin = async(req, res, next) =>{
                 message: "Invalid credentials",
             });
         }
+
+        console.log("password:", password);
+        console.log("stored hash:", existingUser.password);
 
         const isPasswordCorrect = await bcrypt.compare(
             password, 

@@ -2,28 +2,73 @@
 
 import { useRouter } from "next/navigation";
 
-export interface Campaign {
-  id: number;
-  tag: string;
-  urgent?: boolean;
-  gradient: string;
-  avatarGradient: string;
-  initials: string;
-  creator: string;
-  title: string;
-  description?: string;
-  raised: string;
-  goal: string;
-  pct: number;
-  donors: number;
-  daysLeft: number; 
-  featured?: boolean;
-  saved?: boolean;
-  links?: Array<string>;
+export interface Creator {
+  _id: string;
+  id: string;
+  name: string;
+  profilePic?: string;
 }
 
+export interface CommentSchema {
+  _id: string;
+  content: string;
+  isEdited: boolean;
+  createdAt: Date;
+  author: Creator;
+}
+
+export interface DonationSchema {
+  _id: string;
+  amount: number;
+  donor: Creator;
+  isAnonymous: boolean;
+  createdAt: Date
+}
+
+export interface Campaign {
+  _id: string;
+  id: string;
+  title: string;
+  description: string;
+  coverImage: string;
+  category: [string],
+  storySections: [CampaignStory];
+  updates: [CampaignUpdates];
+  createdAt: Date;
+  updatedAt: Date;
+  deadline: Date;
+  creator: Creator;
+  currency: string;
+  goalAmount: number;
+  raisedAmount: number;
+  percentFunded: number;
+  isFeatured: boolean;
+  isVerified: boolean;
+  status: string;
+  tags: [string];
+  slug: string;
+  commentsCount: number,
+  donorsCount: number;
+  comments: [CommentSchema];
+  donations: [DonationSchema];
+};
+
+export interface CampaignStory {
+  _id: string;
+  content: string;
+  createdAt: Date;
+  heading: string;
+  image?: string;
+  order: number;
+  updatedAt: Date;
+};
+
+export interface CampaignUpdates {
+  _id: string;
+};
+
 export default function CampaignCard({ campaign }: { campaign: Campaign }) {
-  const { featured } = campaign;
+  const { isFeatured } = campaign;
 
   const router = useRouter();
 
@@ -35,7 +80,7 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
       overflow: "hidden",
       cursor: "pointer",
       transition: "all 0.25s",
-      ...(featured && {
+      ...(isFeatured && {
         gridColumn: "span 3",
         display: "grid",
         gridTemplateColumns: "380px 1fr",
@@ -54,15 +99,15 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
         el.style.borderColor = "#E2D9CC";
       }}
       onClick={() => {
-        router.push('/campaign-details/' + campaign.id);
+        router.push(`campaign-details/${campaign.id}`);
       }}
     >
       {/* Image */}
       <div style={{
-        height: featured ? "100%" : "172px",
-        minHeight: featured ? "220px" : undefined,
+        height: isFeatured ? "100%" : "172px",
+        minHeight: isFeatured ? "220px" : undefined,
         width: "100%",
-        background: campaign.gradient,
+        background: campaign.coverImage,
         position: "relative",
         display: "flex",
         alignItems: "flex-end",
@@ -76,22 +121,24 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
 
         {/* Tags */}
         <div style={{ display: "flex", gap: "6px", position: "relative", zIndex: 1 }}>
-          <span style={{
+          {campaign.tags?.map((tag, i)=>(
+            <span key={i} style={{
             background: "rgba(255,255,255,0.2)", backdropFilter: "blur(8px)",
             color: "white", padding: "3px 10px", borderRadius: "100px",
             fontSize: "0.68rem", fontWeight: 600, letterSpacing: "0.04em",
             textTransform: "uppercase", border: "1px solid rgba(255,255,255,0.3)",
           }}>
-            {campaign.tag}
+            {tag}
           </span>
-          {campaign.urgent && (
+          ))}
+          {campaign.isFeatured && (
             <span style={{
               background: "rgba(192,68,42,0.85)", color: "white",
               padding: "3px 10px", borderRadius: "100px",
               fontSize: "0.68rem", fontWeight: 600, letterSpacing: "0.04em",
               textTransform: "uppercase", border: "1px solid rgba(192,68,42,0.5)",
             }}>
-              Urgent
+              Featured
             </span>
           )}
         </div>
@@ -100,6 +147,7 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
         <div style={{
           position: "absolute", top: "12px", right: "12px", zIndex: 2,
           width: "32px", height: "32px", borderRadius: "8px",
+          // need to correct saved logic here later
           background: campaign.saved ? "#E8820C" : "rgba(255,255,255,0.2)",
           backdropFilter: "blur(8px)",
           border: `1px solid ${campaign.saved ? "#E8820C" : "rgba(255,255,255,0.3)"}`,
@@ -112,12 +160,12 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
 
       {/* Body */}
       <div style={{
-        padding: featured ? "28px 32px" : "18px 20px 20px",
-        display: featured ? "flex" : "block",
-        flexDirection: featured ? "column" : undefined,
-        justifyContent: featured ? "center" : undefined,
+        padding: isFeatured ? "28px 32px" : "18px 20px 20px",
+        display: isFeatured ? "flex" : "block",
+        flexDirection: isFeatured ? "column" : undefined,
+        justifyContent: isFeatured ? "center" : undefined,
       }}>
-        {featured && (
+        {isFeatured && (
           <div style={{
             display: "inline-flex", alignItems: "center", gap: "6px",
             background: "#FEF0DC", border: "1px solid rgba(232,130,12,0.3)",
@@ -132,14 +180,14 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
         {/* Creator row */}
         <div style={{
           display: "flex", alignItems: "center",
-          justifyContent: featured ? "flex-start" : "space-between",
-          gap: featured ? "8px" : undefined,
-          marginBottom: featured ? "12px" : "8px",
+          justifyContent: isFeatured ? "flex-start" : "space-between",
+          gap: isFeatured ? "8px" : undefined,
+          marginBottom: isFeatured ? "12px" : "8px",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "7px" }}>
             <div style={{
               width: "22px", height: "22px", borderRadius: "50%",
-              background: campaign.avatarGradient,
+              background: campaign.avatarGradient || "none",
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: "0.55rem", fontWeight: 700, color: "white", flexShrink: 0,
             }}>
@@ -159,15 +207,15 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
         {/* Title */}
         <div style={{
           fontFamily: "'Playfair Display', serif",
-          fontSize: featured ? "1.3rem" : "0.98rem",
+          fontSize: isFeatured ? "1.3rem" : "0.98rem",
           fontWeight: 700, lineHeight: 1.35, color: "#1A1410",
-          marginBottom: featured ? "10px" : "14px",
+          marginBottom: isFeatured ? "10px" : "14px",
         }}>
           {campaign.title}
         </div>
 
-        {/* Description (featured only) */}
-        {featured && campaign.description && (
+        {/* Description (isFeatured only) */}
+        {isFeatured && campaign.description && (
           <div style={{
             fontSize: "0.85rem", color: "#3D322A", lineHeight: 1.65,
             marginBottom: "20px",
@@ -191,7 +239,7 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem" }}>
             <span style={{ fontWeight: 700, color: "#1A1410" }}>{campaign.raised} raised</span>
-            <span style={{ color: "#8A7B6E" }}>of {campaign.goal}{featured ? ` · ${campaign.pct}%` : ""}</span>
+            <span style={{ color: "#8A7B6E" }}>of {campaign.goal}{isFeatured ? ` · ${campaign.pct}%` : ""}</span>
           </div>
         </div>
 
@@ -203,11 +251,11 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
           <div style={{ display: "flex", gap: "14px" }}>
             <span style={{ fontSize: "0.72rem", color: "#8A7B6E", display: "flex", alignItems: "center", gap: "4px" }}>
               👥 <strong style={{ color: "#1A1410", fontSize: "0.78rem" }}>{campaign.donors}</strong>
-              {featured ? " donors" : ""}
+              {isFeatured ? " donors" : ""}
             </span>
             <span style={{ fontSize: "0.72rem", color: "#8A7B6E", display: "flex", alignItems: "center", gap: "4px" }}>
-              🕐 <strong style={{ color: "#1A1410", fontSize: "0.78rem" }}>{campaign.daysLeft}{featured ? "" : "d"}</strong>
-              {featured ? " days left" : " left"}
+              🕐 <strong style={{ color: "#1A1410", fontSize: "0.78rem" }}>{campaign.daysLeft}{isFeatured ? "" : "d"}</strong>
+              {isFeatured ? " days left" : " left"}
             </span>
           </div>
           <button style={{
@@ -216,7 +264,7 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
             fontSize: "0.75rem", fontWeight: 600,
             border: "none", cursor: "pointer",
           }}>
-            {featured ? "Donate Now →" : "Donate"}
+            {isFeatured ? "Donate Now →" : "Donate"}
           </button>
         </div>
       </div>

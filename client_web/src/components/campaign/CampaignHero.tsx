@@ -2,11 +2,12 @@ import { Campaign } from "../explore/CampaignCard";
 
 export default function CampaignHero({ campaign }: { campaign: Campaign }) {
   const link_labels = ["𝕏", "💬", "f", "🔗"]
+
   return (
     <div style={{
       marginTop: "65px",
       height: "480px",
-      background: `${campaign?.gradient}`,
+      background: `${campaign?.gradient || "none"}`,
       position: "relative",
       overflow: "hidden",
       display: "flex",
@@ -31,17 +32,19 @@ export default function CampaignHero({ campaign }: { campaign: Campaign }) {
         {/* Left: tags + title */}
         <div style={{ flex: 1 }}>
           <div style={{ display: "flex", gap: "8px", marginBottom: "14px" }}>
-              <span style={{
-                background: "rgba(255,255,255,0.18)",
-                backdropFilter: "blur(10px)",
-                color: "white", padding: "4px 12px", borderRadius: "100px",
-                fontSize: "0.72rem", fontWeight: 600, letterSpacing: "0.05em",
-                textTransform: "uppercase",
-                border: `1px solid ${"rgba(255,255,255,0.3)"}`,
-              }}>
-                {campaign.tag}
-              </span>
-              {campaign.urgent && <span style={{
+              {campaign.tags?.map((tag, i)=>(
+                  <span key={i} style={{
+                  background: "rgba(255,255,255,0.18)",
+                  backdropFilter: "blur(10px)",
+                  color: "white", padding: "4px 12px", borderRadius: "100px",
+                  fontSize: "0.72rem", fontWeight: 600, letterSpacing: "0.05em",
+                  textTransform: "uppercase",
+                  border: `1px solid ${"rgba(255,255,255,0.3)"}`,
+                }}>
+                  {tag}
+                </span>
+              ))}
+              {/* {campaign.urgent && <span style={{
                 background: campaign.urgent ? "rgba(192,68,42,0.8)" : "rgba(255,255,255,0.18)",
                 backdropFilter: "blur(10px)",
                 color: "white", padding: "4px 12px", borderRadius: "100px",
@@ -50,7 +53,7 @@ export default function CampaignHero({ campaign }: { campaign: Campaign }) {
                 border: `1px solid ${campaign.urgent ? "rgba(192,68,42,0.5)" : "rgba(255,255,255,0.3)"}`,
               }}>
                 {campaign.urgent && "Urgent"}
-              </span>}
+              </span>} */}
           </div>
           <h1 style={{
             fontFamily: "'Playfair Display', serif",
@@ -62,8 +65,8 @@ export default function CampaignHero({ campaign }: { campaign: Campaign }) {
           </h1>
         </div>
 
-        {/* Share buttons */}
-        <div style={{ display: "flex", gap: "8px", marginLeft: "40px", flexShrink: 0 }}>
+        {/* Share buttons: Will work on them later */}
+        {/* <div style={{ display: "flex", gap: "8px", marginLeft: "40px", flexShrink: 0 }}>
           {campaign.links?.map((link: string, i: number) => (
             <button key={i} style={{
               width: "40px", height: "40px", borderRadius: "10px",
@@ -77,7 +80,7 @@ export default function CampaignHero({ campaign }: { campaign: Campaign }) {
               </a>
             </button>
           ))}
-        </div>
+        </div> */}
       </div>
     </div>
   );

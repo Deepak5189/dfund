@@ -1,7 +1,32 @@
-import CampaignCard from "./CampaignCard";
-import { campaigns } from "./CampaignData";
+"use client";
+import { useEffect, useState } from "react";
+import CampaignCard, { Campaign } from "./CampaignCard";
+import { fetchAllCampaigns } from "@/lib/store/api/postAPI";
+import { Response } from "../create-campaign/CreateCampaignForm";
+
+// const campaigns: Array<Campaign>=[];
 
 export default function ExploreMain() {
+
+  const [campaigns, setCampaigns] = useState<Array<Campaign>>([]);
+
+  useEffect(()=>{
+    const fetchCampaigns = async ()=>{
+      try{
+        const res: Response = await fetchAllCampaigns();
+        if(res.error){
+          setCampaigns([]);
+          return;
+        }
+        setCampaigns(res.data);
+        console.log(res.data);
+      }catch(error){
+        throw new Error(`Got this error in exploreMain component: ${error}`);
+      }
+    }
+    fetchCampaigns();
+  }, [])
+
   return (
     <main style={{ flex: 1, padding: "32px 40px", minWidth: 0 }}>
 
@@ -55,13 +80,13 @@ export default function ExploreMain() {
           </div>
         ))}
         <span style={{ marginLeft: "auto", fontSize: "0.8rem", color: "#8A7B6E", fontFamily: "monospace" }}>
-          284 results
+          {campaigns.length} results
         </span>
       </div>
 
       {/* Campaign Grid */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "22px" }}>
-        {campaigns.map((campaign) => (
+        {campaigns?.map((campaign) => (
           <CampaignCard key={campaign.id} campaign={campaign} />
         ))}
       </div>

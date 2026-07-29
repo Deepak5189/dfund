@@ -11,11 +11,17 @@ const userSchema = new Schema(
             type: String,
             required: true, 
             unique: true,
+            lowercase: true, 
             trim: true,
         },
         password: {
             type: String,
             required: true,
+            select: false,
+        },
+        avatar: {
+            type: String,
+            default: null, 
         },
         isEmailVerified: {
             type: Boolean,
@@ -26,6 +32,14 @@ const userSchema = new Schema(
         timestamp: true,
     }
 );
+
+userSchema.virtual("campaigns", {
+    ref: "Campaign",
+    localField: "_id",
+    foreignField: "creator", 
+});
+
+userSchema.set("toJSON", {virtuals: true, });
 
 userSchema.index({name: "text"});
 module.exports=mongoose.model("User", userSchema);
