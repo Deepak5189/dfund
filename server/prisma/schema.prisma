@@ -1,0 +1,244 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================
+// USER
+// ============================================================
+
+model User {
+  id                String   @id @default(uuid()) @db.Uuid
+  name              String
+  email             String   @unique
+  password          String
+  avatar            String?
+  is_email_verified Boolean  @default(true)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  saved_campaigns SavedCampaign[]
+
+  campaigns Campaign[]
+  comments  Comment[]
+  donations Donation[]
+  tokens    Token[]
+
+  @@index([name])
+}
+
+// ============================================================
+// TOKEN
+// ============================================================
+
+model Token {
+  id            String   @id @default(uuid()) @db.Uuid
+  user_id       String   @db.Uuid
+  refresh_token String
+  access_token  String
+  is_active      Boolean
+  created_at    DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+}
+
+// ============================================================
+// LOG
+// ============================================================
+
+model Log {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String?
+  context   String?
+  message   String
+  type      String
+  level     String
+  timestamp DateTime @default(now())
+
+  @@index([timestamp])
+  @@index([email])
+}
+
+// ============================================================
+// CAMPAIGN
+// ============================================================
+
+model SavedCampaign {
+  id          String  @id @default(uuid()) @db.Uuid
+  user_id     String  @db.Uuid
+  campaign_id String  @db.Uuid
+  created_at  DateTime  @default(now())
+
+  // Relational Mapping
+  user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  campaign    Campaign  @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+
+  // Optimizations
+  @@unique([user_id, campaign_id])
+
+  // indexes
+  @@index([user_id])
+  @@index([campaign_id])
+}
+
+model Campaign {
+  id         String @id @default(uuid()) @db.Uuid
+  creator_id String @db.Uuid
+
+  title       String
+  slug        String  @unique
+  description String
+  cover_image String?
+
+  category String
+  status   String @default("Draft")
+  tags     String[] @default([])
+
+  goal_amount   Decimal @db.Decimal(15, 2)
+  currency      String  @default("INR")
+  raised_amount Decimal @default(0) @db.Decimal(15, 2)
+
+  donors_count   Int @default(0)
+  comments_count Int @default(0)
+
+  deadline DateTime
+
+  is_verified Boolean @default(false)
+  is_featured Boolean @default(false)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  creator        User             @relation(fields: [creator_id], references: [id])
+  story_sections StorySection[]
+  updates        CampaignUpdate[]
+  donations      Donation[]
+  comments       Comment[]
+
+  saved_by      SavedCampaign[]
+
+  @@index([creator_id])
+  @@index([category, status, created_at])
+}
+
+// ============================================================
+// CAMPAIGN STORY SECTION
+// MongoDB embedded document -> PostgreSQL table
+// ============================================================
+
+model StorySection {
+  id          String @id @default(uuid()) @db.Uuid
+  campaign_id String @db.Uuid
+
+  heading    String?
+  content    String
+  image      String?
+  sort_order Int     @default(0)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  campaign Campaign @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+
+  @@index([campaign_id])
+  @@index([campaign_id, sort_order])
+}
+
+// ============================================================
+// CAMPAIGN UPDATE
+// MongoDB embedded document -> PostgreSQL table
+// ============================================================
+
+model CampaignUpdate {
+  id          String @id @default(uuid()) @db.Uuid
+  campaign_id String @db.Uuid
+
+  title   String
+  content String
+  image   String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  campaign Campaign @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+
+  @@index([campaign_id])
+}
+
+// ============================================================
+// DONATION
+// ============================================================
+
+model Donation {
+  id String @id @default(uuid()) @db.Uuid
+
+  campaign_id String  @db.Uuid
+  donor_id    String? @db.Uuid
+
+  guest_name  String?
+  guest_email String?
+
+  amount   Decimal @db.Decimal(15, 2)
+  currency String  @default("INR")
+
+  message String?
+
+  is_anonymous Boolean @default(false)
+
+  status String @default("pending")
+
+  payment_provider  String?
+  payment_intent_id String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  campaign Campaign @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+
+  donor User? @relation(fields: [donor_id], references: [id], onDelete: SetNull)
+
+  @@index([campaign_id])
+  @@index([donor_id])
+  @@index([status])
+  @@index([payment_intent_id])
+}
+
+// ============================================================
+// COMMENT
+// ============================================================
+
+model Comment {
+  id String @id @default(uuid()) @db.Uuid
+
+  campaign_id String @db.Uuid
+  author_id   String @db.Uuid
+
+  content String
+
+  parent_comment_id String? @db.Uuid
+
+  is_edited Boolean @default(false)
+  is_hidden Boolean @default(false)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  campaign Campaign @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+
+  author User @relation(fields: [author_id], references: [id], onDelete: Cascade)
+
+  parent_comment Comment? @relation("CommentReplies", fields: [parent_comment_id], references: [id], onDelete: Cascade)
+
+  replies Comment[] @relation("CommentReplies")
+
+  @@index([campaign_id])
+  @@index([author_id])
+  @@index([parent_comment_id])
+  @@index([campaign_id, created_at])
+}

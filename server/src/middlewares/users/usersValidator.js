@@ -1,5 +1,6 @@
 const {check, validationResult} = require("express-validator");
 const User = require("../../models/user.model");
+const { prisma } = require("../../config/db");
 
 const addUserValidator = [
     check("name")
@@ -24,7 +25,7 @@ const addUserValidator = [
         .trim()
         .custom(async (value)=>{
             try{
-                const user = await User.findOne({email: value});
+                const user = await prisma.user.findUnique({where: {email: value}});
                 if(user){
                     throw new Error("There is already an account associated with this email address");
                 }

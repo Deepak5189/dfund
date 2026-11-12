@@ -60,3 +60,309 @@ body {
 ::-webkit-scrollbar       { width: 6px; }
 ::-webkit-scrollbar-track { background: #F7F3ED; }
 ::-webkit-scrollbar-thumb { background: #E2D9CC; border-radius: 3px; }
+
+
+/* Campaign details page layout */-----------------------------------------------------------
+
+/* Overall content width and spacing */
+.campaign-detail-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px clamp(20px, 6.4vw, 60px) 64px;
+  box-sizing: border-box;
+}
+
+/* Main story column + donation sidebar */
+.campaign-detail-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  align-items: start;
+  gap: clamp(20px, 4vw, 32px);
+}
+
+.campaign-detail-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.campaign-detail-sidebar {
+  min-width: 0;
+  width: 100%;
+}
+
+/* Recommendations appear below both columns */
+.campaign-recommendations {
+  width: 100%;
+  min-width: 0;
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid #f2ece4;
+}
+
+/* Prevent child content from forcing horizontal overflow */
+.campaign-detail-main > *,
+.campaign-detail-sidebar > *,
+.campaign-recommendations > * {
+  min-width: 0;
+}
+
+/* Stack columns on genuinely narrow screens */
+@media (max-width: 539px) {
+  .campaign-detail-container {
+    padding: 24px 16px 48px;
+  }
+
+  .campaign-detail-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+  }
+
+  .campaign-detail-main {
+    gap: 28px;
+  }
+
+  .campaign-detail-sidebar {
+    position: static;
+  }
+
+  .campaign-recommendations {
+    margin-top: 36px;
+    padding-top: 20px;
+  }
+}
+
+/* -------------------------------------------------- */
+
+/* CampaignNavbar component ------------------------------------------------------------------ */
+
+.campaign-navbar {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 50;
+  height: 48px;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  padding: 0 clamp(16px, 5.2vw, 48px);
+  background: rgba(253, 250, 246, 0.96);
+  border-bottom: 1px solid #e9e0d5;
+  backdrop-filter: blur(12px);
+}
+
+.campaign-navbar-logo {
+  justify-self: start;
+  color: #1a1410;
+  text-decoration: none;
+  font-family: Georgia, serif;
+  font-size: 16px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.campaign-navbar-logo span {
+  color: #e8820c;
+}
+
+.campaign-navbar-breadcrumb {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.campaign-navbar-breadcrumb a {
+  color: #8a7b6e;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.campaign-navbar-breadcrumb a:hover {
+  color: #e8820c;
+}
+
+.breadcrumb-separator {
+  color: #b9aa9b;
+}
+
+.breadcrumb-current {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #1a1410;
+  font-weight: 500;
+}
+
+.campaign-navbar-actions {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  white-space: nowrap;
+}
+
+.campaign-navbar-login {
+  color: #1a1410;
+  text-decoration: none;
+  font-family: Georgia, serif;
+  font-size: 10px;
+}
+
+.campaign-navbar-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 14px;
+  border-radius: 5px;
+  background: #1a1410;
+  color: #fffaf4;
+  text-decoration: none;
+  font-size: 9px;
+  font-weight: 600;
+  transition: background 0.2s, color 0.2s;
+}
+
+.campaign-navbar-cta:hover {
+  background: #e8820c;
+  color: #1a1410;
+}
+
+@media (max-width: 640px) {
+  .campaign-navbar {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .campaign-navbar-breadcrumb {
+    display: none;
+  }
+
+  .campaign-navbar-actions {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  .campaign-navbar {
+    padding-inline: 12px;
+  }
+
+  .campaign-navbar-actions {
+    gap: 8px;
+  }
+
+  .campaign-navbar-cta {
+    padding: 7px 9px;
+    font-size: 8px;
+  }
+}
+/* ------------------------------------------------------------------------ */
+
+/* Campaign Hero component -------------------------------------------------------------------- */
+
+
+.campaign-hero {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.campaign-hero-content {
+  width: 100%;
+  max-width: 1200px;
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: 0 clamp(20px, 6.4vw, 60px) 25px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  position: relative;
+  z-index: 1;
+}
+
+.campaign-hero-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.campaign-hero-badges {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 12px;
+}
+
+.campaign-hero-title {
+  max-width: 680px;
+  margin: 0;
+  color: #fff;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(24px, 3vw, 30px);
+  font-weight: 900;
+  line-height: 1.12;
+  letter-spacing: -0.5px;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+  overflow-wrap: anywhere;
+}
+
+.campaign-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding-bottom: 1px;
+}
+
+.campaign-hero-actions button {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.17);
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .campaign-hero {
+    height: 280px !important;
+  }
+
+  .campaign-hero-content {
+    padding: 0 20px 24px;
+    gap: 12px;
+  }
+
+  .campaign-hero-title {
+    font-size: clamp(22px, 5vw, 28px);
+  }
+
+  .campaign-hero-actions {
+    gap: 4px;
+  }
+
+  .campaign-hero-actions button {
+    width: 26px;
+    height: 26px;
+  }
+}
+
+@media (max-width: 420px) {
+  .campaign-hero-actions {
+    display: none;
+  }
+}
+/* ------------------------------------------------------------------------ */
+

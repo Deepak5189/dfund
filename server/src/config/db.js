@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const { PrismaClient } = require("../generated/prisma");
+const { PrismaPg } = require("@prisma/adapter-pg");
 mongoose.set("strictQuery", true);
 
 class Database {
@@ -26,4 +28,10 @@ class Database {
     }
 }
 
-module.exports = Database;
+const adapter = new PrismaPg({
+    connectionString: process.env.Database_URL,
+});
+
+const prisma = new PrismaClient({adapter});
+
+module.exports = {Database, prisma};
