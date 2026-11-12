@@ -1,3 +1,5 @@
+"use client"
+
 export default function DonateSidebar({ campaign }: any) {
   return (
     <div className="sticky top-24 h-fit animate-fade-up">

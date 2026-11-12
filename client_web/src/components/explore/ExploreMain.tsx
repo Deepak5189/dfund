@@ -14,6 +14,7 @@ export default function ExploreMain() {
     const fetchCampaigns = async ()=>{
       try{
         const res: Response = await fetchAllCampaigns();
+        // console.log(res.data);
         if(res.error){
           setCampaigns([]);
           return;

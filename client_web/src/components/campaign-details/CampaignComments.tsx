@@ -1,333 +1,373 @@
+
 "use client";
 
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-// import { CampaignComment } from "../explore/CampaignData";
 import Link from "next/link";
-import { useState } from "react";
-import { CommentSchema } from "../explore/CampaignCard";
-import { Response } from "../create-campaign/CreateCampaignForm";
+
+import type { CommentSchema } from "../explore/CampaignCard";
+import type { Response } from "../create-campaign/CreateCampaignForm";
 import { postComment } from "@/lib/store/api/commentAPI";
 import CampaignCommentCard from "./CampaignCommentCard";
 
-const comments = [
-  {
-    id: 1,
-    name: "Rahul Kumar",
-    initials: "RK",
-    gradient: "linear-gradient(135deg, #C0442A, #E8820C)",
-    time: "2 hours ago",
-    content:
-      "Wishing Maya a speedy recovery. Happy to support this campaign. Stay strong!",
-    likes: 14,
-  },
-  {
-    id: 2,
-    name: "Anjali Nair",
-    initials: "AN",
-    gradient: "linear-gradient(135deg, #4A6741, #7DB56A)",
-    time: "Yesterday",
-    content:
-      "Every little contribution counts. I hope this campaign reaches its goal very soon ❤️",
-    likes: 8,
-  },
-  {
-    id: 3,
-    name: "Dr. Dev Verma",
-    initials: "DV",
-    gradient: "linear-gradient(135deg, #7B5EA7, #B09FD4)",
-    time: "2 days ago",
-    content:
-      "Praying for a successful surgery. Thank you to everyone who is helping.",
-    likes: 21,
-  },
-];
-
 export interface CommentPayload {
-  campaign: string;
+  campaignId: string;
   content: string;
-  parentComment: string | null;
+  parentCommentId: string | null;
   isEdited?: boolean;
   isHidden?: boolean;
 }
 
-// export default function CampaignComments() {
 export default function CampaignComments({
   comments,
   campaignId,
 }: {
-  comments: [CommentSchema];
+  comments: CommentSchema[];
   campaignId: string;
 }) {
-  const [visibleComments, setVisibleComments] = useState<number>(20);
-  const [commentList, setCommentList] =
-    useState<Array<CommentSchema>>(comments);
-  const [commentText, setCommentText] = useState<string>("");
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [visibleComments, setVisibleComments] = useState(20);
+  const [commentList, setCommentList] = useState<CommentSchema[]>(
+    comments ?? []
+  );
+  const [commentText, setCommentText] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
-  const userData = useSelector((state) => state.auth?.userData);
+  const userData = useSelector(
+    (state: { auth?: { userData?: unknown } }) => state.auth?.userData
+  );
 
-  const updateVisibleComments = () => {
-    const newVisibleLength = Math.min(visibleComments + 20, commentList.length);
-    setVisibleComments(newVisibleLength);
-  };
+  // Keep local state synchronized when the campaign data changes.
+  useEffect(() => {
+    const updateState = async ()=>{
+      
+      setCommentList(comments ?? []);
+      setVisibleComments(20);
+    }
+    updateState();
+  }, [comments, campaignId]);
 
-  const submitComment = async()=>{
-    if(!commentText.trim()) return;
+  const submitComment = async () => {
+    const content = commentText.trim();
+
+    if (!content || isSubmitting) return;
+
     setIsSubmitting(true);
-    try{
-      const payload: CommentPayload = {
-        campaign: campaignId,
-        content: commentText.trim(),
-        parentComment: null,
-      };
-      const res:Response = await postComment(payload);
+    setSubmitError("");
 
-      if(!res.error){
-        setCommentList(prev=>[res.data, ...prev]);
+    try {
+      const payload: CommentPayload = {
+        campaignId,
+        content,
+        parentCommentId: null,
+      };
+      console.log(payload);
+
+      const res: Response = await postComment(payload);
+
+      if (res.error) {
+        setSubmitError("Unable to post your comment. Please try again. Error: "+ res.error);
+        return;
       }
-      setCommentText("");
-    }catch(error){
-      throw new Error(`Unexpected error while posting a comment: ${error}`);
-    }finally{
+
+      if (res.data) {
+        setCommentList((previous) => [res.data, ...previous]);
+        setCommentText("");
+      } else {
+        setSubmitError("The server did not return the posted comment.");
+      }
+    } catch {
+      setSubmitError("Something went wrong while posting your comment.");
+    } finally {
       setIsSubmitting(false);
     }
-  }
+  };
+
+  const visibleCommentList = commentList
+    .filter((comment) => !comment.is_hidden)
+    .slice(0, visibleComments);
 
   return (
-    <>
-      <section style={{ marginTop: "64px" }}>
-        <h2
-          style={{
-            fontFamily: "'Playfair Display', serif",
-            fontSize: "1.8rem",
-            fontWeight: 900,
-            color: "#1A1410",
-            marginBottom: "24px",
+    <section className="campaign-comments">
+      <div className="campaign-comments-heading">
+        <h2>Comments</h2>
+        <span>{commentList.filter((comment) => !comment.is_hidden).length}</span>
+      </div>
+
+      {/* Comment form */}
+      {userData ? (
+        <form
+          className="campaign-comment-form"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void submitComment();
           }}
         >
-          Comments ({commentList.length})
-        </h2>
+          <textarea
+            rows={3}
+            maxLength={2000}
+            placeholder="Share a few encouraging words..."
+            aria-label="Write a comment"
+            value={commentText}
+            onChange={(event) => setCommentText(event.target.value)}
+            disabled={isSubmitting}
+            required
+          />
 
-        {/* Write Comment */}
-        {!userData && (
-          <section
-            style={{
-              marginTop: "64px",
-              display: "flex",
-              gap: "4px",
-              alignItems: "center",
-            }}
-          >
-            Please{" "}
-            <span>
-              <Link href="/login" className="text-blue-500">
-                Login Here{" "}
-              </Link>
-            </span>{" "}
-            to comment on this post.
-          </section>
-        )}
-        {userData && (
-          <div
-            style={{
-              background: "white",
-              border: "1px solid #E2D9CC",
-              borderRadius: "16px",
-              padding: "10px",
-              marginBottom: "28px",
-              boxShadow: "0 8px 30px rgba(26,20,16,0.05)",
-              display: "flex",
-              gap: "20px",
-            }}
-          >
-            {/* this is for adding user's initials */}
-            {/* <div>{}</div> */}
-            <textarea
-              rows={1}
-              placeholder="Share a few encouraging words..."
-              style={{
-                width: "100%",
-                resize: "vertical",
-                padding: "14px",
-                border: "1.5px solid #E2D9CC",
-                borderRadius: "10px",
-                outline: "none",
-                fontFamily: "inherit",
-                fontSize: "0.95rem",
-                color: "#1A1410",
-                background: "#FDFBF8",
-              }}
-              name="comment"
-              value={commentText}
-              onChange={(e)=>setCommentText(e.target.value)}
-            />
+          <div className="campaign-comment-form-footer">
+            <span>{commentText.length}/2000</span>
 
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                marginTop: "16px",
-              }}
-            >
-              <button
-                style={{
-                  padding: "12px 24px",
-                  background: "#E8820C",
-                  color: "#1A1410",
-                  border: "none",
-                  borderRadius: "10px",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                }}
-                disabled={isSubmitting}
-                onClick={submitComment}
-              >
-                {isSubmitting ? "Posting..." : "Post Comment"}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Comments */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
-          {commentList.length>0 && commentList?.slice(0, visibleComments).map((comment, i) => (
-            // <div
-            //   key={i}
-            //   style={{
-            //     background: "white",
-            //     border: "1px solid #E2D9CC",
-            //     borderRadius: "16px",
-            //     padding: "22px",
-            //     boxShadow: "0 6px 24px rgba(26,20,16,0.05)",
-            //   }}
-            // >
-            //   {/* Header */}
-            //   <div
-            //     style={{
-            //       display: "flex",
-            //       alignItems: "center",
-            //       gap: "14px",
-            //       marginBottom: "14px",
-            //     }}
-            //   >
-            //     <div
-            //       style={{
-            //         width: "46px",
-            //         height: "46px",
-            //         borderRadius: "50%",
-            //         background: comment?.gradient || "none",
-            //         display: "flex",
-            //         alignItems: "center",
-            //         justifyContent: "center",
-            //         color: "black",
-            //         fontWeight: 700,
-            //         fontSize: "0.9rem",
-            //         flexShrink: 0,
-            //       }}
-            //     >
-            //       {comment?.initials || "AB"}
-            //     </div>
-
-            //     <div>
-            //       <div
-            //         style={{
-            //           fontWeight: 700,
-            //           color: "#1A1410",
-            //           fontSize: "0.95rem",
-            //         }}
-            //       >
-            //         {comment.name}
-            //       </div>
-
-            //       <div
-            //         style={{
-            //           color: "#8A7B6E",
-            //           fontSize: "0.75rem",
-            //           marginTop: "2px",
-            //         }}
-            //       >
-            //         {comment.time}
-            //       </div>
-            //     </div>
-            //   </div>
-
-            //   {/* Body */}
-            //   <p
-            //     style={{
-            //       color: "#4E463F",
-            //       lineHeight: 1.75,
-            //       fontSize: "0.95rem",
-            //       marginBottom: "18px",
-            //     }}
-            //   >
-            //     {comment.content}
-            //   </p>
-
-            //   {/* Footer */}
-            //   <div
-            //     style={{
-            //       display: "flex",
-            //       gap: "18px",
-            //       fontSize: "0.82rem",
-            //       color: "#8A7B6E",
-            //     }}
-            //   >
-            //     <button
-            //       style={{
-            //         background: "none",
-            //         border: "none",
-            //         cursor: "pointer",
-            //         color: "#8A7B6E",
-            //         padding: 0,
-            //       }}
-            //     >
-            //       👍 {comment.likes}
-            //     </button>
-
-            //     <button
-            //       style={{
-            //         background: "none",
-            //         border: "none",
-            //         cursor: "pointer",
-            //         color: "#8A7B6E",
-            //         padding: 0,
-            //       }}
-            //     >
-            //       Reply
-            //     </button>
-            //   </div>
-            // </div>
-            <CampaignCommentCard key={i} comment={comment}/>
-          ))}
-          {!commentList.length && <div>No comments yet</div>}
-        </div>
-
-        {/* Load More */}
-        {commentList.length > 20 && visibleComments < commentList.length && (
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              marginTop: "32px",
-            }}
-          >
             <button
-              style={{
-                padding: "12px 24px",
-                border: "1px solid #E2D9CC",
-                borderRadius: "10px",
-                background: "#F7F3ED",
-                color: "#8A7B6E",
-                cursor: "pointer",
-                fontWeight: 600,
-              }}
-              onClick={updateVisibleComments}
+              type="submit"
+              disabled={!commentText.trim() || isSubmitting}
             >
-              Load More Comments
+              {isSubmitting ? "Posting..." : "Post Comment"}
             </button>
           </div>
+
+          {submitError && (
+            <p className="campaign-comment-error" role="alert">
+              {submitError}
+            </p>
+          )}
+        </form>
+      ) : (
+        <div className="campaign-comment-login">
+          <p>
+            Want to share some encouragement?{" "}
+            <Link href="/login">Log in to comment</Link>.
+          </p>
+        </div>
+      )}
+
+      {/* Comment list */}
+      <div className="campaign-comment-list">
+        {visibleCommentList.map((comment) => (
+          <CampaignCommentCard
+            key={comment.id}
+            comment={comment}
+          />
+        ))}
+
+        {commentList.length === 0 && (
+          <div className="campaign-comments-empty">
+            <p>No comments yet.</p>
+            <span>Be the first to share a few encouraging words.</span>
+          </div>
         )}
-      </section>
-    </>
+
+        {commentList.length > 0 && visibleCommentList.length === 0 && (
+          <div className="campaign-comments-empty">
+            No visible comments.
+          </div>
+        )}
+      </div>
+
+      {/* Load more */}
+      {commentList.filter((comment) => !comment.is_hidden).length >
+        visibleComments && (
+        <div className="campaign-comments-load-more">
+          <button
+            type="button"
+            onClick={() =>
+              setVisibleComments((previous) => previous + 20)
+            }
+          >
+            Load More Comments
+          </button>
+        </div>
+      )}
+
+      <style jsx>{`
+        .campaign-comments {
+          width: 100%;
+          min-width: 0;
+          margin-top: 8px;
+          color: #1a1410;
+        }
+
+        .campaign-comments-heading {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 20px;
+        }
+
+        .campaign-comments-heading h2 {
+          margin: 0;
+          font-family: "Playfair Display", Georgia, serif;
+          font-size: 25px;
+          line-height: 1.2;
+          font-weight: 900;
+        }
+
+        .campaign-comments-heading > span {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 24px;
+          height: 24px;
+          padding: 0 7px;
+          box-sizing: border-box;
+          border-radius: 100px;
+          background: #f1e8dc;
+          color: #8a7b6e;
+          font-size: 11px;
+          font-weight: 600;
+        }
+
+        .campaign-comment-form {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          margin-bottom: 24px;
+          padding: 14px;
+          background: #fff;
+          border: 1px solid #e2d9cc;
+          border-radius: 12px;
+          box-shadow: 0 4px 18px rgba(26, 20, 16, 0.035);
+        }
+
+        .campaign-comment-form textarea {
+          box-sizing: border-box;
+          width: 100%;
+          min-height: 84px;
+          padding: 12px;
+          resize: vertical;
+          border: 1px solid #e2d9cc;
+          border-radius: 8px;
+          outline: none;
+          background: #fdfbf8;
+          color: #1a1410;
+          font: inherit;
+          font-size: 13px;
+          line-height: 1.6;
+        }
+
+        .campaign-comment-form textarea:focus {
+          border-color: #e8820c;
+          box-shadow: 0 0 0 2px rgba(232, 130, 12, 0.1);
+        }
+
+        .campaign-comment-form-footer {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+        }
+
+        .campaign-comment-form-footer > span {
+          color: #8a7b6e;
+          font-size: 10px;
+        }
+
+        .campaign-comment-form-footer button {
+          padding: 9px 15px;
+          border: none;
+          border-radius: 7px;
+          background: #e8820c;
+          color: #1a1410;
+          font: inherit;
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+
+        .campaign-comment-form-footer button:disabled {
+          opacity: 0.55;
+          cursor: not-allowed;
+        }
+
+        .campaign-comment-error {
+          margin: 0;
+          color: #b42318;
+          font-size: 12px;
+        }
+
+        .campaign-comment-login {
+          margin-bottom: 24px;
+          padding: 15px;
+          border: 1px solid #e2d9cc;
+          border-radius: 10px;
+          background: #fff;
+          color: #6e6257;
+          font-size: 13px;
+        }
+
+        .campaign-comment-login p {
+          margin: 0;
+        }
+
+        .campaign-comment-login a {
+          color: #b96308;
+          font-weight: 600;
+          text-decoration: none;
+        }
+
+        .campaign-comment-login a:hover {
+          text-decoration: underline;
+        }
+
+        .campaign-comment-list {
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+        }
+
+        .campaign-comments-empty {
+          padding: 24px 16px;
+          border: 1px solid #e2d9cc;
+          border-radius: 10px;
+          background: #fff;
+          color: #8a7b6e;
+          text-align: center;
+          font-size: 12px;
+        }
+
+        .campaign-comments-empty p {
+          margin: 0 0 5px;
+          color: #1a1410;
+          font-size: 14px;
+          font-weight: 600;
+        }
+
+        .campaign-comments-empty span {
+          font-size: 11px;
+        }
+
+        .campaign-comments-load-more {
+          display: flex;
+          justify-content: center;
+          margin-top: 22px;
+        }
+
+        .campaign-comments-load-more button {
+          padding: 10px 18px;
+          border: 1px solid #e2d9cc;
+          border-radius: 8px;
+          background: #f7f3ed;
+          color: #6e6257;
+          font: inherit;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+        }
+
+        .campaign-comments-load-more button:hover {
+          border-color: #e8820c;
+          color: #1a1410;
+        }
+
+        @media (max-width: 480px) {
+          .campaign-comments-heading h2 {
+            font-size: 22px;
+          }
+
+          .campaign-comment-form {
+            padding: 10px;
+          }
+        }
+      `}</style>
+    </section>
   );
 }

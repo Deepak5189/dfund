@@ -1,46 +1,10 @@
 "use client";
 import { useState } from "react";
 import { Campaign } from "../explore/CampaignCard";
+import { CheckoutSessionPayload, getCheckoutSession } from "@/lib/store/api/paymentAPI";
 
 const amounts = [10, 25, 50, 100, 250, 500];
 
-const donors = [
-  {
-    initials: "RK",
-    gradient: "linear-gradient(135deg, #C0442A, #E8820C)",
-    name: "Rahul Kumar",
-    time: "2 hours ago",
-    amount: "+$100",
-  },
-  {
-    initials: "AN",
-    gradient: "linear-gradient(135deg, #4A6741, #7DB56A)",
-    name: "Anjali Nair",
-    time: "5 hours ago",
-    amount: "+$25",
-  },
-  {
-    initials: "DV",
-    gradient: "linear-gradient(135deg, #7B5EA7, #B09FD4)",
-    name: "Dr. Dev Verma",
-    time: "1 day ago",
-    amount: "+$250",
-  },
-  {
-    initials: "MS",
-    gradient: "linear-gradient(135deg, #1A6B6B, #3AAFA9)",
-    name: "Meera Sharma",
-    time: "1 day ago",
-    amount: "+$50",
-  },
-  {
-    initials: "A",
-    gradient: "linear-gradient(135deg, #2D5A8E, #5B9BD5)",
-    name: "Anonymous",
-    time: "2 days ago",
-    amount: "+$500",
-  },
-];
 
 const findDaysLeft = (deadline: Date) => {
   return Math.ceil(
@@ -48,19 +12,106 @@ const findDaysLeft = (deadline: Date) => {
   );
 };
 
-const makeInitials = (name: string) => {
-  if (name.length <= 2) {
-    return name;
-  } else if (name.split(" ").length > 1) {
-    const parts = name.trim().split(/\s+/);
-    return (
-      parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : "")
-    ).toUpperCase();
+const makeInitials = (name: string): string => {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+
+  if (parts.length === 0) return "G";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+
+  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+};
+
+const formatTimeAgo = (date: string | Date): string => {
+  const timestamp = new Date(date).getTime();
+
+  if (!Number.isFinite(timestamp)) return "";
+
+  const elapsed = Math.max(0, Date.now() - timestamp);
+  const minutes = Math.floor(elapsed / 60_000);
+
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes}m ago`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+
+  return new Date(date).toLocaleDateString();
+};
+
+const formatCurrency = (
+  amount: string | number,
+  currency: string,
+): string => {
+  const value = Number(amount);
+
+  if (!Number.isFinite(value)) return "";
+
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency || "USD",
+      maximumFractionDigits: 2,
+    }).format(value);
+  } catch {
+    return `${currency || "USD"} ${value.toFixed(2)}`;
   }
 };
 
 export default function DonateSidebar({ campaign }: { campaign: Campaign }) {
+
+  const raised = Number(campaign.raised_amount) || 0;
+  const goal = Number(campaign.goal_amount) || 0;
+
+  const percentFunded =
+    goal > 0 ? Math.round((raised / goal) * 100) : 0;
+
+  const progressWidth = Math.min(100, Math.max(0, percentFunded));
+
+  // const [selected, setSelected] = useState(50);
   const [selected, setSelected] = useState(50);
+  const [customAmount, setCustomAmount] = useState("");
+
+
+  const donationAmount =
+    customAmount.trim() !== ""
+      ? Number(customAmount)
+      : selected;
+
+  const isValidAmount =
+    Number.isFinite(donationAmount) &&
+    donationAmount >= 1 &&
+    Math.round(donationAmount * 100) === donationAmount * 100;
+
+  
+  const handleCheckout = async ()=>{
+    // add payment logic here
+    try{
+      const payload: CheckoutSessionPayload = {
+        amount: donationAmount,
+        currency: "USD",
+      }
+
+      const res = await getCheckoutSession(payload);
+
+      if(res.error){
+        console.error(`Unexpected Error: ${res.error}`);
+      }
+      const session = res.data.json();
+
+      if(session.url){
+        window.location.href = session.url;
+      }else{
+        console.error(`Didn't get the session url`);
+      }
+    }catch(error){
+      console.error("Payment checkout failed: "+error);      
+    }
+  }
+
+
 
   return (
     <div style={{ position: "sticky", top: "85px", height: "fit-content" }}>
@@ -85,7 +136,7 @@ export default function DonateSidebar({ campaign }: { campaign: Campaign }) {
               lineHeight: 1,
             }}
           >
-            {campaign.raisedAmount}
+            {campaign.raised_amount}
           </div>
           <div
             style={{
@@ -95,7 +146,7 @@ export default function DonateSidebar({ campaign }: { campaign: Campaign }) {
               marginBottom: "20px",
             }}
           >
-            raised of {campaign.goalAmount} goal
+            raised of {campaign.goal_amount} goal
           </div>
 
           <div
@@ -110,7 +161,7 @@ export default function DonateSidebar({ campaign }: { campaign: Campaign }) {
             <div
               style={{
                 height: "100%",
-                width: `${campaign.percentFunded}%`,
+                width: `${progressWidth}%`,
                 background: "linear-gradient(90deg, #E8820C, #F5A640)",
                 borderRadius: "10px",
               }}
@@ -128,17 +179,17 @@ export default function DonateSidebar({ campaign }: { campaign: Campaign }) {
           >
             {[
               {
-                num: `${campaign.percentFunded}%`,
+                num: `${percentFunded}%`,
                 label: "Funded",
                 amber: true,
               },
               {
-                num: campaign.donorsCount.toString(),
+                num: campaign.donors_count.toString(),
                 label: "Donors",
                 amber: false,
               },
               {
-                num: `${findDaysLeft(campaign.deadline)}`,
+                num: `${findDaysLeft(new Date(campaign.deadline))}`,
                 label: "Days Left",
                 amber: false,
               },
@@ -201,7 +252,10 @@ export default function DonateSidebar({ campaign }: { campaign: Campaign }) {
             {amounts.map((amt) => (
               <button
                 key={amt}
-                onClick={() => setSelected(amt)}
+                onClick={() => {
+                  setSelected(amt);
+                  setCustomAmount("");
+                }}
                 style={{
                   padding: "10px 8px",
                   borderRadius: "8px",
@@ -241,38 +295,47 @@ export default function DonateSidebar({ campaign }: { campaign: Campaign }) {
             </span>
             <input
               type="number"
+              min="1"
+              step="0.01"
+              value={customAmount}
+              onChange={(e) => setCustomAmount(e.target.value)}
               placeholder="Enter custom amount"
               style={{
                 width: "100%",
+                boxSizing: "border-box",
                 padding: "11px 14px 11px 28px",
                 border: "1.5px solid #E2D9CC",
                 borderRadius: "8px",
                 fontFamily: "inherit",
                 fontSize: "0.9rem",
-                color: "#8A7B6E",
+                color: "#1A1410",
                 background: "#F7F3ED",
                 outline: "none",
               }}
             />
           </div>
-
           <button
+            disabled={!isValidAmount}
+            onClick={() => {
+              // Connect this to your donation checkout flow.
+              console.log("Donation amount:", donationAmount);
+              handleCheckout()
+            }}
             style={{
+              // Keep your existing button styles.
               width: "100%",
               padding: "15px",
-              background: "#E8820C",
+              background: isValidAmount ? "#E8820C" : "#D8C8B5",
               color: "#1A1410",
               border: "none",
               borderRadius: "10px",
               fontFamily: "'Playfair Display', serif",
               fontSize: "1.1rem",
               fontWeight: 700,
-              cursor: "pointer",
-              boxShadow: "0 4px 20px rgba(232,130,12,0.3)",
-              marginBottom: "12px",
+              cursor: isValidAmount ? "pointer" : "not-allowed",
             }}
           >
-            Donate ${selected} →
+            Donate ${donationAmount.toLocaleString("en-US")} →
           </button>
 
           <div
@@ -371,12 +434,12 @@ export default function DonateSidebar({ campaign }: { campaign: Campaign }) {
               fontFamily: "monospace",
             }}
           >
-            {campaign.donorsCount} total
+            {campaign.donors_count} total
           </span>
         </div>
 
         <div>
-          {campaign.donations.map((d) => (
+          {/* {campaign.donations?.map((d) => (
             <div
               key={d.donor.name}
               style={{
@@ -393,7 +456,7 @@ export default function DonateSidebar({ campaign }: { campaign: Campaign }) {
                   height: "32px",
                   borderRadius: "50%",
                   flexShrink: 0,
-                  background: d.donor.profilePic || "none",
+                  background: d.donor.profile_pic || "none",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -429,7 +492,74 @@ export default function DonateSidebar({ campaign }: { campaign: Campaign }) {
                 {d.amount}
               </div>
             </div>
-          ))}
+          ))} */}
+          {(campaign.donations ?? []).map((d) => {
+            const donorName = d.is_anonymous
+              ? "Anonymous"
+              : d.donor?.name || d.guest_name || "Guest donor";
+
+            const initials =
+              donorName === "Anonymous"
+                ? "A"
+                : makeInitials(donorName) || "G";
+
+            return (
+              <div
+                key={d.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  padding: "10px 22px",
+                }}
+              >
+                <div
+                  style={{
+                    width: "32px",
+                    height: "32px",
+                    borderRadius: "50%",
+                    flexShrink: 0,
+                    background: "#4A6741",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "0.62rem",
+                    fontWeight: 700,
+                    color: "white",
+                  }}
+                >
+                  {initials}
+                </div>
+
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div
+                    style={{
+                      fontSize: "0.82rem",
+                      fontWeight: 600,
+                      color: "#1A1410",
+                    }}
+                  >
+                    {donorName}
+                  </div>
+
+                  <div style={{ fontSize: "0.7rem", color: "#8A7B6E" }}>
+                    {formatTimeAgo(d.createdAt)}
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    fontFamily: "monospace",
+                    fontSize: "0.82rem",
+                    fontWeight: 500,
+                    color: "#4A6741",
+                  }}
+                >
+                  {formatCurrency(d.amount, campaign.currency)}
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         <button
@@ -446,7 +576,7 @@ export default function DonateSidebar({ campaign }: { campaign: Campaign }) {
             cursor: "pointer",
           }}
         >
-          See all {campaign.donorsCount} donors →
+          See all {campaign.donors_count} donors →
         </button>
       </div>
     </div>

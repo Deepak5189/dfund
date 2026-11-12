@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+00_MASTER_CONTEXT.md
+PHASE_1_foundation_scaffolding.md
+PHASE_2_data_layer_campaigns_rbac_oauth.md
+PHASE_3_payments_stripe_testing_security.md
+PHASE_4_mobile_app_polish_deployment.md
+progress.md

@@ -6,12 +6,12 @@ const verifyCreator = async (req, res, next)=>{
             message: "Unauthorized",
         });
     }
-    if(!req.user.isEmailVerified){
+    if(!req.user.is_email_verified){
         return res.status(403).json({
             message: "Your Email must be verified for posting content",
         })
     }
-    req.body.creator = req.user._id;
+    req.body.creator = req.user.id;
     next();
 };
 

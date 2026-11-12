@@ -6,7 +6,7 @@ export const postComment = async (payload: CommentPayload) => {
     try{
         const res: Response = await API.post("/comments", {payload}, {
             headers: {
-                "Contnet-Type": "application/json",
+                "Content-Type": "application/json",
             },
         });
         // if(!res.status(201)){

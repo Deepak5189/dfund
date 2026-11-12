@@ -1,3 +1,4 @@
+const { prisma } = require("../config/db");
 const {Campaign} = require("../models/campaign.model");
 const User = require("../models/user.model");
 // const {User} = require("../models/user.model");
@@ -21,51 +22,126 @@ const createPost = async (req, res)=>{
             tags,
         } = req.body;
 
-        const newPost = await Campaign.create({
-            creator, title, slug, description, coverImage, category, status, goalAmount, currency, deadline, storySections, updates, tags
-        })
+
+        const newPost = await prisma.campaign.create({
+            data:{
+                creator_id: creator,
+                title: title,
+                slug: slug,
+                description: description,
+                cover_image: coverImage || undefined,
+                category: category,
+                status: status || undefined,
+                tags: tags || undefined,
+                goal_amount: goalAmount,
+                currency: currency || undefined,
+                deadline: deadline,
+
+                updates: updates && updates.length>0 ? {
+                    create: updates.map((update, i)=>({
+                        title: update.title,
+                        content: update.content,
+                        image: update.image || null,
+                    }))
+                }:undefined,
+
+                story_sections: storySections && storySections.length>0?{
+                    create: storySections.map((section, i)=>({
+                        heading: section.heading || null,
+                        content: section.content,
+                        image: section.image || null,
+                        sort_order: i
+                    }))
+                }: undefined,
+            },
+            include: {
+                story_sections: true,
+                updates: true,
+            }
+        });
+
+        console.log(newPost);
+
         return res.status(201).json({
             message: "Post created successfully",
-            post_ref: newPost._id || newPost.slug,
+            post_ref: newPost.id || newPost.slug,
         });
     }catch(err){
         console.error(`Unexpected error when creating Post: ${err}`);
+        return res.status(500).json({
+            message: "Internal Server error",
+            error: err,
+        });
     }
 };
 
 const getOnePost = async (req, res)=>{
     try{
         const {id} = req.params;
-        // console.log(id);
-        const post = await Campaign.findById(id)
-                        .populate("creator", "name")
-                        .populate({
-                            path: "donations",
-                            match: {
-                                status: "succeeded",
-                            },
-                            options: {
-                                sort: {createdAt: -1},
-                                limit: 100,
-                            },
-                            populate: {
-                                path: "donor",
-                                select: "name",
-                            }
-                        })
-                        .populate({
-                            path: "comments",
-                            match: {
-                                isHidden: false,
-                                parentComment: null,
-                            },
-                            options: { sort: {createdAt: -1}},
-                            populate: {
-                                path: "author",
-                                select: "name",
-                            },
-                        });
-        // console.log(post);
+        const isValidUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+        
+        const post = await prisma.campaign.findFirst({
+            where: isValidUuid
+            ? {
+                OR:[
+                    {slug: id,},
+                    {id: id,},
+                ]
+            } :{
+                slug: id,
+            },
+            include: {
+                creator: {
+                    select:{
+                        name: true,
+                    },
+                },
+                story_sections: {
+                    orderBy:[
+                        {created_at: "asc",},
+                        {sort_order: "asc",},
+                    ],
+                },
+                updates: true,
+                donations: {
+                    where:{
+                        status: "successful",
+                    },
+                    orderBy:{
+                        created_at: 'desc',
+                    },
+                    take: 100,
+                    include: {
+                        donor: {
+                            select: {name: true,},
+                        },
+                    },
+                },
+                comments: {
+                    where: {
+                        is_hidden: false,
+                        parent_comment_id: null,
+                    },
+                    orderBy:{
+                        created_at: "desc",
+                    },
+                    include: {
+                        author: {
+                            select: {name: true,},
+                        },
+                    },
+                },
+            },
+        });
+
+        if(!post){
+            return res.status(404).json({
+                message: "Post not found",
+                post_identifier: id,
+            });
+        }
+
+        console.log(post);
         return res.status(200).json({
             message: "Post fetched successfully",
             post,
@@ -80,15 +156,35 @@ const getOnePost = async (req, res)=>{
 
 const getAllPosts = async (req, res)=>{
     try{
-        const posts = await Campaign.find();
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page-1)*limit;
+
+        const posts = await prisma.campaign.findMany({
+            skip: skip,
+            take: limit,
+            orderBy:{
+                created_at: "desc",
+            },
+            include: {
+                creator: {
+                    select: {
+                        name: true,
+                    },
+                },
+            },
+        });
         // console.log(posts);
-        if(!posts){
+        if(posts.length ===0){
             return res.status(401).json({
-                message: "Unexpected Error Occured",
+                message: "No campaigns found matching criteria",
+                data: [],
             });
         }
         return res.status(200).json({
             message: "Fetched all posts successfully!",
+            page,
+            limit,
             data: posts,
         });
     }catch(error){

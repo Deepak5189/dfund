@@ -1,9 +1,10 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const User = require("../models/user.model");
-const Token = require("../models/token.model");
+// const User = require("../models/user.model");
+// const Token = require("../models/token.model");
 const {saveLogInfo} = require("../middlewares/logger/logInfo");
-const tokenModel = require("../models/token.model");
+// const tokenModel = require("../models/token.model");
+const { prisma } = require("../config/db");
 
 const LOG_TYPE = {
     SIGN_IN: "sign in",
@@ -29,25 +30,48 @@ const MESSAGE = {
 };
 
 const getCurrUser = async (req, res, next) => {
-    const accessToken = req.cookies.accessToken;
+    try{
+        const accessToken = req.cookies.accessToken;
 
-    if(!accessToken) return res.status(401).json({
-        message: "User is not loggedIn",
-    })
+        if(!accessToken) return res.status(401).json({
+            message: "User is not loggedIn",
+        })
 
-    const payload = jwt.verify(accessToken, process.env.SECRET);
-    console.log(payload);
+        const payload = jwt.verify(accessToken, process.env.SECRET);
+        console.log(payload);
 
-    const user = await User.findById(payload.id);
+        const activeSession = prisma.token.findFirst({
+            where: {
+                access_token: accessToken,
+                is_active: true,
+            },
+        });
 
-    res.status(200).json({
-        user: {
-            _id: user.id,
-            name: user.name,
-            email: user.email,
+        if(!activeSession){
+            return res.status(401).json({
+                message: "Session has expired or been invalidated on another device",
+            });
         }
-    });
-}
+
+        // const user = await User.findById(payload.id);
+
+        const user = await prisma.user.findUnique({
+            where: {id: payload.id},
+        })
+
+        return res.status(200).json({
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+            }
+        });
+    }catch(error){
+        return res.status(401).json({
+            message: "Invalid or expired session token structure",
+        });
+    }
+};
 
 const signin = async(req, res, next) =>{
     await saveLogInfo(
@@ -61,9 +85,12 @@ const signin = async(req, res, next) =>{
     try{
         
         const {email, password} = req.body;
-        const existingUser = await User.findOne({
-            email: {$eq: email},
-        }).select("+password");
+        const existingUser = await prisma.user.findUnique({
+            where:{email: email},
+        });
+        // const existingUser = await User.findOne({
+        //     email: {$eq: email},
+        // }).select("+password");
 
         if(!existingUser){
             await saveLogInfo(
@@ -94,14 +121,27 @@ const signin = async(req, res, next) =>{
                 LEVEL.ERROR
             );
 
-            res.status(400).json({
+            return res.status(400).json({
                 message: "invalid credentials",
             });
         }
 
+        if(!existingUser.is_email_verified){
+            await saveLogInfo(
+                req, 
+                MESSAGE.SIGN_IN_ATTEMPT,
+                LEVEL.ERROR
+            );
+
+            return res.status(400).json({
+                message: "Email not verified yet",
+            });
+        }
+
         const payload = {
-            id: existingUser._id,
+            id: existingUser.id,
             email: existingUser.email,
+            verified: existingUser.is_email_verified,
         };
 
         const accessToken = jwt.sign(payload, process.env.SECRET, {
@@ -112,12 +152,32 @@ const signin = async(req, res, next) =>{
             expiresIn: "7d",
         })
 
-        const newRefreshToken = new Token({
-            user: existingUser._id,
-            refreshToken,
-            accessToken,
+        // const newRefreshToken = new Token({
+        //     user: existingUser._id,
+        //     refreshToken,
+        //     accessToken,
+        // });
+        // await newRefreshToken.save();
+
+        await prisma.token.updateMany({
+            where: {
+                user_id: existingUser.id,
+                is_active: true,
+            },
+            data: {
+                is_active: false,
+            },
+        })
+
+        const savedToken = await prisma.token.create({
+            data: {
+                user_id: existingUser.id,
+                refresh_token: refreshToken,
+                access_token: accessToken,
+                is_active: true,
+            }
         });
-        await newRefreshToken.save();
+
         res.cookie("accessToken", accessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
@@ -132,10 +192,10 @@ const signin = async(req, res, next) =>{
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         });
 
-        res.status(200).json({
+        return res.status(200).json({
             accessTokenUpdatedAt: new Date().toLocaleString(),
             user:{
-                _id: existingUser._id,
+                id: existingUser.id,
                 name: existingUser.name,
                 email: existingUser.email,
             },
@@ -149,7 +209,7 @@ const signin = async(req, res, next) =>{
             LEVEL.ERROR,
         );
 
-        res.status(500).json({
+        return res.status(500).json({
             message: "Something went wrong",
         });
     }
@@ -160,23 +220,29 @@ const addUser = async (req, res, next) => {
 
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
-    newUser = new User({
-        name: req.body.name,
-        email: req.body.email,
-        password: hashedPassword,
-    });
+    // newUser = new User();
 
     try{
-        await newUser.save();
+        // await newUser.save();
+        newUser = await prisma.user.create({
+                data: {
+                name: req.body.name,
+                email: req.body.email,
+                password: hashedPassword,
+            }
+        });
 
-        if(newUser.isNew) throw new Error("Failed to add user");
-        // next();
-        res.status(201).json({
+        if(!newUser) throw new Error("Failed to add user");
+        // next(); // This will be used when email varification will be implemented
+        return res.status(201).json({
             message: "User created successfully",
         })
     }catch(error){
-        res.status(400).json({
+        return res.status(400).json({
             message: "Failed to add user",
+            data:{
+                error,
+            }
         });
     }
 };
@@ -184,9 +250,19 @@ const addUser = async (req, res, next) => {
 const logout = async (req, res) => {
     try{
         const accessToken = req.cookies.accessToken;
+        const refreshToken = req.cookies.refreshToken;
+
 
         if(accessToken){
-            await Token.deleteOne({accessToken});
+            // await Token.deleteOne({accessToken});
+
+            await prisma.token.updateMany({
+                where: {access_token: accessToken},
+                data: {
+                    is_active: false,
+                }
+            });
+
             await saveLogInfo(
                 null, 
                 MESSAGE.LOGOUT_SUCCESS,
@@ -207,7 +283,7 @@ const logout = async (req, res) => {
             sameSite: "lax",
         });
 
-        res.status(200).json({
+        return res.status(200).json({
             message: "Logout Successful",
         });
     }catch(error){
@@ -217,7 +293,7 @@ const logout = async (req, res) => {
             LOG_TYPE.LOGOUT,
             LEVEL.ERROR,
         );
-        res.status(500).json({
+        return res.status(500).json({
             message: "Internal Server Error. Please try again",
         });
     }
